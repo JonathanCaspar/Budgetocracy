@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Budgetocracy</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Paramètres</string>
+    <string name="categories">Catégories</string>
+    <string name="graphics">Graphiques</string>
+    <string name="scan">Scan</string>
+    <string name="expensesAdd">Ajout dépenses</string>
+    <string name="categorieNameActivity">Toutes les dépenses</string>
+</resources>
