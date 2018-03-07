@@ -1,76 +1,83 @@
 package projet.ift2905.budgetocracy;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.TimeZone;
-
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 import android.widget.Toast;
-
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
+    private static final String TAG = MainActivity.class.getSimpleName(); // Pour débuggage
     private BottomNavigationViewEx mBottomBar; // Menu de l'écran principal
-    final int MY_PERMISSIONS_REQUEST_CAMERA = 0;
+
+    private String photoBase64;
+    private ImageView photo;
+
+    final String[] PERMISSIONS = {Manifest.permission.CAMERA,
+                                  Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                  Manifest.permission.INTERNET};
+    final int PERMISSION_ALL = 101;
+    final int REQUEST_IMAGE_CAPTURE = 102;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Toolbar (en haut)
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
         getSupportActionBar().setTitle(getCurrentMonth());
-        mBottomBar = (BottomNavigationViewEx) findViewById(R.id.menuBar);
+
+        // Barre de navigation (en bas)
+        mBottomBar = findViewById(R.id.menuBar);
         mBottomBar.setActivated(true);
         mBottomBar.enableItemShiftingMode(false);
         mBottomBar.enableAnimation(false);
         mBottomBar.enableShiftingMode(false);
         mBottomBar.setTextVisibility(false);
 
+        // Sert juste à tester l'image récupérée par la caméra
+        photo = findViewById(R.id.photoFrame);
+
+        // Liens d'écoute sur la barre de navigation
         mBottomBar.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch(item.getItemId()){
 
                     case R.id.menu_scan :
-                        item.setEnabled(true);
-                        mBottomBar.setBackgroundResource(R.color.colorPrimary);
-                        // Si Permission non accordée:
-                        if (ContextCompat.checkSelfPermission(getApplicationContext(),
-                                Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED) {
-
-                            // Request the permission
-                            ActivityCompat.requestPermissions(MainActivity.this,
-                                    new String[]{Manifest.permission.CAMERA},
-                                    MY_PERMISSIONS_REQUEST_CAMERA);
-                            return false;
-
-                        } else {
-                            takePicture();
+                        // Si Permission accordée:
+                        if(hasPermissions(getApplicationContext(), PERMISSIONS)){
+                            Intent takePhotoIntent = new Intent(MainActivity.this, CameraActivity.class);
+                            // Activité Caméra lancée dans l'attente d'une réponse (image)
+                            startActivityForResult(takePhotoIntent ,REQUEST_IMAGE_CAPTURE);
                             return true;
+                        } else {
+                            // Sinon: les demander
+                            ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS, PERMISSION_ALL);
+                            return false;
                         }
 
                     case R.id.menu_categories:
@@ -90,6 +97,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        // Affichage du menu latéral gauche
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -100,33 +108,110 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
     }
 
+    // Récupère les données attendues d'une activité selon le "requestCode"
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode) {
+            case REQUEST_IMAGE_CAPTURE:
+                if(resultCode == RESULT_OK) {
+                    String img64 = data.getStringExtra("base64");
+                    photoBase64 = img64;
+                    byte[] decodedString = Base64.decode(img64,Base64.DEFAULT);
+                    Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0,decodedString.length);
+                    photo.setImageBitmap(decodedByte);
+                }
+        }
+    }
+
+    // TO BE CONTINUED
+    private void runGoogleAPI() {
+        return;
+    }
+
+    // Affiche le mois courant dans le Toolbar
+    public String getCurrentMonth(){
+        DateFormat dateFormat = new SimpleDateFormat("MM");
+        Date date = new Date();
+        String mois = dateFormat.format(date);
+
+        switch(mois) {
+            case "01":
+                return "Janvier";
+            case "02":
+                return "Février";
+            case "03":
+                return "Mars";
+            case "04":
+                return "Avril";
+            case "05":
+                return "Mai";
+            case "06":
+                return "Juin";
+            case "07":
+                return "Juillet";
+            case "08":
+                return "Août";
+            case "09":
+                return "Septembre";
+            case "10":
+                return "Octobre";
+            case "11":
+                return "Novembre";
+            case "12":
+                return "Décembre";
+            default :
+                return "Cinglinglin";
+        }
+    }
+
+    /**
+     *   PERMISSIONS :
+     */
     // Gère la réponse d'un utilisateur à une requête de permission
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_CAMERA: {
+            case PERMISSION_ALL:
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && isAllGranted(grantResults)) {
                     // Permission accordée : accès à l'appareil photo
-                    takePicture();
-
+                    startActivity(new Intent(MainActivity.this, CameraActivity.class));
                 } else {
                     // Permission refusée: impossible de prendre de photo
                     Toast.makeText(getApplicationContext(),"Permission refusée: impossible d'accéder à l'appareil photo.",Toast.LENGTH_SHORT).show();
                 }
                 return;
+        }
+    }
+
+    // Vérification si toutes les permissions demandées ont été acceptés
+    public boolean isAllGranted(int[] grantResults){
+        for(int i = 0; i < grantResults.length; i++){
+            if(grantResults[i] == PackageManager.PERMISSION_DENIED){
+                return false;
             }
         }
+        return true;
     }
 
-    public void takePicture(){
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, 1);
+    //Vérification si les permissions actuelles sont suffisantes
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
         }
+        return true;
     }
 
+    /**
+     *  Partie pas importante : gère l'affichage du Drawer (menu latéral)
+            **/
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -183,40 +268,4 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
-    public String getCurrentMonth(){
-        DateFormat dateFormat = new SimpleDateFormat("MM");
-        Date date = new Date();
-        String mois = dateFormat.format(date);
-
-        switch(mois) {
-            case "01":
-                return "Janvier";
-            case "02":
-                return "Février";
-            case "03":
-                return "Mars";
-            case "04":
-                return "Avril";
-            case "05":
-                return "Mai";
-            case "06":
-                return "Juin";
-            case "07":
-                return "Juillet";
-            case "08":
-                return "Août";
-            case "09":
-                return "Septembre";
-            case "10":
-                return "Octobre";
-            case "11":
-                return "Novembre";
-            case "12":
-                return "Décembre";
-            default :
-                return "Cinglinglin";
-        }
-    }
-
 }
