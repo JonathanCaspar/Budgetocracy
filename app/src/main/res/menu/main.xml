@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_settings"
@@ -10,5 +9,6 @@
     <item
         android:id="@+id/searchMenuItem"
         android:icon="@drawable/ic_search_black_36dp"
-        app:showAsAction="always" />
+        android:title="@android:string/search_go"
+        app:showAsAction="ifRoom" />
 </menu>

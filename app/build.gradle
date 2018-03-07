@@ -29,4 +29,8 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     implementation 'com.android.support:mediarouter-v7:27.0.1'
     compile 'com.github.ittianyu:BottomNavigationViewEx:1.2.4'
+    compile 'com.google.api-client:google-api-client-android:1.22.0'
+    compile 'com.google.apis:google-api-services-vision:v1-rev357-1.22.0'
+    compile 'com.google.code.findbugs:jsr305:2.0.1'
+    compile 'commons-io:commons-io:2.5'
 }
