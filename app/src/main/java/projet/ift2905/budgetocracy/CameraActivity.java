@@ -89,46 +89,20 @@ public class CameraActivity extends AppCompatActivity {
         mPicture = new Camera.PictureCallback() {
             @Override
             public void onPictureTaken(byte[] data, Camera camera) {
-                File pictureFile = null;
 
-                try {
-                    pictureFile = createImageFile();
-                    FileOutputStream fos = new FileOutputStream(pictureFile);
-                    fos.write(data);
-                    fos.close();
-                } catch (FileNotFoundException e) {
-                    Log.d("File", "File not found: " + e.getMessage());
-                } catch (IOException e) {
-                    Log.d("File", "Error accessing file: " + e.getMessage());
-                }
+                // Encode la photo prise en Base64
+                String photoBase64 = Base64.encodeBase64String(data);
 
-
-                generateNoteOnSD(getApplicationContext(),"base64TEST.txt", Base64.encodeBase64String(data));
                 // Permet à l'activité appelante (MainActivity)
                 // de récupérer la photo (en encodage Base64)
                 Intent intent = getIntent();
-                intent.putExtra("path", pictureFile.getAbsolutePath());
+                intent.putExtra("photoBase64", photoBase64);
                 setResult(RESULT_OK, intent);
 
                 //Fin de l'activité
                 finish();
             }
         };
-    }
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        return image;
     }
 
     /**
@@ -196,23 +170,6 @@ public class CameraActivity extends AppCompatActivity {
         params.setRotation(rotate);
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
         mCamera.setParameters(params);
-    }
-
-    // Fonction utilitaire : générer un fichier .txt de la photo en encodage Base64
-    public void generateNoteOnSD(Context context, String sFileName, String sBody) {
-        try {
-            File root = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "Notes");
-            if (!root.exists()) {
-                root.mkdirs();
-            }
-            File gpxfile = new File(root, sFileName);
-            FileWriter writer = new FileWriter(gpxfile);
-            writer.append(sBody);
-            writer.flush();
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     // Gère l'autofocus de la caméra

@@ -6,12 +6,20 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
+
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.design.widget.NavigationView;
@@ -20,19 +28,42 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.api.client.extensions.android.json.AndroidJsonFactory;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.services.vision.v1.Vision;
+import com.google.api.services.vision.v1.VisionRequestInitializer;
+import com.google.api.services.vision.v1.model.AnnotateImageRequest;
+import com.google.api.services.vision.v1.model.AnnotateImageResponse;
+import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
+import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
+import com.google.api.services.vision.v1.model.Block;
+import com.google.api.services.vision.v1.model.Feature;
+import com.google.api.services.vision.v1.model.Image;
+import com.google.api.services.vision.v1.model.Page;
+import com.google.api.services.vision.v1.model.Paragraph;
+import com.google.api.services.vision.v1.model.Symbol;
+import com.google.api.services.vision.v1.model.TextAnnotation;
+import com.google.api.services.vision.v1.model.Word;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
+
+import org.apache.commons.codec.binary.Base64;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    private static final String TAG = MainActivity.class.getSimpleName(); // Pour débuggage
+    // INTERFACE
     private BottomNavigationViewEx mBottomBar; // Menu de l'écran principal
+    private TextView reponseAPI;
 
-    private String photoBase64;
-    private ImageView photo;
+    // DONNEES
+    private String photoBase64; // Emplacement de la photo à envoyer
+    private Vision vision; // Client API
 
     final String[] PERMISSIONS = {Manifest.permission.CAMERA,
                                   Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -59,14 +90,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mBottomBar.setTextVisibility(false);
 
         // Sert juste à tester l'image récupérée par la caméra
-        photo = findViewById(R.id.photoFrame);
+        reponseAPI = findViewById(R.id.reponseAPI);
 
         // Liens d'écoute sur la barre de navigation
         mBottomBar.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch(item.getItemId()){
-
                     case R.id.menu_scan :
                         // Si Permission accordée:
                         if(hasPermissions(getApplicationContext(), PERMISSIONS)){
@@ -116,57 +146,64 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         switch (requestCode) {
             case REQUEST_IMAGE_CAPTURE:
                 if(resultCode == RESULT_OK) {
-                    String imgPath = data.getStringExtra("path");
-                    Bitmap bitmap = BitmapFactory.decodeFile(imgPath);
-                    photo.setImageBitmap(bitmap);
+                    photoBase64 = data.getStringExtra("photoBase64");
+
+                    AsyncTask.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            setupAPIClient();
+                            runGoogleAPI();
+                        }
+                    });
+
                 }
         }
     }
 
-    // TO BE CONTINUED
+    /*********
+     *  API  *
+     *********/
+
+    // Configure le client qui va interagir avec les serveurs Google
+    private void setupAPIClient(){
+        Vision.Builder visionBuilder = new Vision.Builder( new NetHttpTransport(), new AndroidJsonFactory(), null);
+        String cleAPI = getString(R.string.google_vision_ocr_api_key); // CLE PRIVEE ---> vous DEVEZ vous procurer votre propre clé avec Google
+        visionBuilder.setVisionRequestInitializer(new VisionRequestInitializer(cleAPI));
+        vision = visionBuilder.build();
+    }
+
     private void runGoogleAPI() {
-        return;
-    }
+        // Type d'analyse d'image
+        Feature desiredFeature = new Feature();
+        desiredFeature.setType("TEXT_DETECTION");
 
-    // Affiche le mois courant dans le Toolbar
-    public String getCurrentMonth(){
-        DateFormat dateFormat = new SimpleDateFormat("MM");
-        Date date = new Date();
-        String mois = dateFormat.format(date);
+        Image inputImage = new Image();
+        inputImage.encodeContent(com.google.api.client.util.Base64.decodeBase64(photoBase64));
 
-        switch(mois) {
-            case "01":
-                return "Janvier";
-            case "02":
-                return "Février";
-            case "03":
-                return "Mars";
-            case "04":
-                return "Avril";
-            case "05":
-                return "Mai";
-            case "06":
-                return "Juin";
-            case "07":
-                return "Juillet";
-            case "08":
-                return "Août";
-            case "09":
-                return "Septembre";
-            case "10":
-                return "Octobre";
-            case "11":
-                return "Novembre";
-            case "12":
-                return "Décembre";
-            default :
-                return "Cinglinglin";
+        AnnotateImageRequest request = new AnnotateImageRequest();
+        request.setImage(inputImage);
+        request.setFeatures(Arrays.asList(desiredFeature));
+
+        BatchAnnotateImagesRequest batchRequest = new BatchAnnotateImagesRequest();
+        batchRequest.setRequests(Arrays.asList(request));
+
+        // Réponse du serveur
+        BatchAnnotateImagesResponse batchResponse = new BatchAnnotateImagesResponse();
+        try {
+            batchResponse = vision.images().annotate(batchRequest).execute();
+        } catch (IOException e) {
+            Toast.makeText(getApplicationContext(), "Impossible d'accéder à la reconnaissance de textes.", Toast.LENGTH_LONG).show();
+            Log.d("API Run :", e.toString());
         }
+
+        final TextAnnotation text = batchResponse.getResponses().get(0).getFullTextAnnotation();
+        System.out.println(text.getText());
     }
 
-    /**
-     *   PERMISSIONS :
-     */
+
+    /*****************
+     *  PERMISSIONS  *
+     *****************/
     // Gère la réponse d'un utilisateur à une requête de permission
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -210,6 +247,58 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**
      *  Partie pas importante : gère l'affichage du Drawer (menu latéral)
             **/
+    // Fonction utilitaire : générer un fichier .txt de la photo en encodage Base64
+    public void generateNoteOnSD(Context context, String sFileName, String sBody) {
+        try {
+            File root = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "Notes");
+            if (!root.exists()) {
+                root.mkdirs();
+            }
+            File gpxfile = new File(root, sFileName);
+            FileWriter writer = new FileWriter(gpxfile);
+            writer.append(sBody);
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Affiche le mois courant dans le Toolbar
+    public String getCurrentMonth(){
+        DateFormat dateFormat = new SimpleDateFormat("MM");
+        Date date = new Date();
+        String mois = dateFormat.format(date);
+
+        switch(mois) {
+            case "01":
+                return "Janvier";
+            case "02":
+                return "Février";
+            case "03":
+                return "Mars";
+            case "04":
+                return "Avril";
+            case "05":
+                return "Mai";
+            case "06":
+                return "Juin";
+            case "07":
+                return "Juillet";
+            case "08":
+                return "Août";
+            case "09":
+                return "Septembre";
+            case "10":
+                return "Octobre";
+            case "11":
+                return "Novembre";
+            case "12":
+                return "Décembre";
+            default :
+                return "Cinglinglin";
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
