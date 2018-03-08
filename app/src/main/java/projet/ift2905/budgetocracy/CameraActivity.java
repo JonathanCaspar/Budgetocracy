@@ -3,6 +3,9 @@ package projet.ift2905.budgetocracy;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Bundle;
@@ -10,17 +13,31 @@ import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Base64;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
+
+
+import com.google.api.client.util.Base64;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+
+import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
+
+
 @SuppressWarnings( "deprecation" )
 
 
@@ -72,19 +89,46 @@ public class CameraActivity extends AppCompatActivity {
         mPicture = new Camera.PictureCallback() {
             @Override
             public void onPictureTaken(byte[] data, Camera camera) {
-                String photo64 = Base64.encodeToString(data , Base64.DEFAULT);
-                generateNoteOnSD(getApplicationContext(),"base64essai.txt", photo64);
+                File pictureFile = null;
 
+                try {
+                    pictureFile = createImageFile();
+                    FileOutputStream fos = new FileOutputStream(pictureFile);
+                    fos.write(data);
+                    fos.close();
+                } catch (FileNotFoundException e) {
+                    Log.d("File", "File not found: " + e.getMessage());
+                } catch (IOException e) {
+                    Log.d("File", "Error accessing file: " + e.getMessage());
+                }
+
+
+                generateNoteOnSD(getApplicationContext(),"base64TEST.txt", Base64.encodeBase64String(data));
                 // Permet à l'activité appelante (MainActivity)
                 // de récupérer la photo (en encodage Base64)
                 Intent intent = getIntent();
-                intent.putExtra("base64", photo64);
+                intent.putExtra("path", pictureFile.getAbsolutePath());
                 setResult(RESULT_OK, intent);
 
                 //Fin de l'activité
                 finish();
             }
         };
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        return image;
     }
 
     /**
@@ -137,6 +181,18 @@ public class CameraActivity extends AppCompatActivity {
 
         //STEP #2: Set the 'rotation' parameter
         Camera.Parameters params = mCamera.getParameters();
+
+        /**List<Camera.Size> sizes = params.getSupportedPictureSizes();
+        int w = 0, h = 0;
+        for (Camera.Size size : sizes) {
+            System.out.println("Size supported -- width = "+size.width +" --- height = "+size.height);
+            if (size.width > w || size.height > h) {
+                w = size.width;
+                h = size.height;
+            }
+
+        }**/
+        params.setPictureSize(800, 480);
         params.setRotation(rotate);
         params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
         mCamera.setParameters(params);
@@ -145,7 +201,7 @@ public class CameraActivity extends AppCompatActivity {
     // Fonction utilitaire : générer un fichier .txt de la photo en encodage Base64
     public void generateNoteOnSD(Context context, String sFileName, String sBody) {
         try {
-            File root = new File(Environment.getExternalStorageDirectory(), "Notes");
+            File root = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "Notes");
             if (!root.exists()) {
                 root.mkdirs();
             }
@@ -154,7 +210,6 @@ public class CameraActivity extends AppCompatActivity {
             writer.append(sBody);
             writer.flush();
             writer.close();
-            Toast.makeText(context, "Saved", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
             e.printStackTrace();
         }
