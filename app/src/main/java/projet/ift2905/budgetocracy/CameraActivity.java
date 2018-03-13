@@ -3,39 +3,22 @@ package projet.ift2905.budgetocracy;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
-
 import com.google.api.client.util.Base64;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-
-import static android.provider.MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
 
 
 @SuppressWarnings( "deprecation" )
@@ -156,19 +139,28 @@ public class CameraActivity extends AppCompatActivity {
         //STEP #2: Set the 'rotation' parameter
         Camera.Parameters params = mCamera.getParameters();
 
-        /**List<Camera.Size> sizes = params.getSupportedPictureSizes();
-        int w = 0, h = 0;
+        // Cherche la résolution la plus proche de 800 x 480 parmi celles supportées par la caméra
+        List<Camera.Size> sizes = params.getSupportedPictureSizes();
+        int w = 0, h = 0, ecartW = 4000, ecartH = 4000;
         for (Camera.Size size : sizes) {
-            System.out.println("Size supported -- width = "+size.width +" --- height = "+size.height);
-            if (size.width > w || size.height > h) {
-                w = size.width;
-                h = size.height;
+            int ecartTempW = 800 - size.width ;
+            int ecartTempH = 480 - size.height;
+
+            if (ecartTempW >= 0 && ecartTempH >= 0) {
+                if(ecartTempW <= ecartW && ecartTempH <= ecartH){
+                    w = size.width;
+                    h = size.height;
+
+                    ecartW = ecartTempW;
+                    ecartH = ecartTempH;
+                }
             }
 
-        }**/
-        params.setPictureSize(800, 480);
+        }
+
+        params.setPictureSize(w, h);
         params.setRotation(rotate);
-        params.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+        //params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
         mCamera.setParameters(params);
     }
 

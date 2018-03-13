@@ -4,66 +4,34 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.NavigationView;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
+
+import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
-
-import android.support.design.widget.BottomNavigationView;
-import android.support.v4.app.ActivityCompat;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.ImageView;
-import android.widget.TextView;
-import android.widget.Toast;
-
-import com.google.api.client.extensions.android.json.AndroidJsonFactory;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.services.vision.v1.Vision;
-import com.google.api.services.vision.v1.VisionRequestInitializer;
-import com.google.api.services.vision.v1.model.AnnotateImageRequest;
-import com.google.api.services.vision.v1.model.AnnotateImageResponse;
-import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
-import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
-import com.google.api.services.vision.v1.model.Block;
-import com.google.api.services.vision.v1.model.Feature;
-import com.google.api.services.vision.v1.model.Image;
-import com.google.api.services.vision.v1.model.Page;
-import com.google.api.services.vision.v1.model.Paragraph;
-import com.google.api.services.vision.v1.model.Symbol;
-import com.google.api.services.vision.v1.model.TextAnnotation;
-import com.google.api.services.vision.v1.model.Word;
-import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
-
-import org.apache.commons.codec.binary.Base64;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     // INTERFACE
     private BottomNavigationViewEx mBottomBar; // Menu de l'écran principal
-    private TextView reponseAPI;
-
-    // DONNEES
-    private String photoBase64; // Emplacement de la photo à envoyer
-    private Vision vision; // Client API
 
     final String[] PERMISSIONS = {Manifest.permission.CAMERA,
                                   Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -88,9 +56,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mBottomBar.enableAnimation(false);
         mBottomBar.enableShiftingMode(false);
         mBottomBar.setTextVisibility(false);
-
-        // Sert juste à tester l'image récupérée par la caméra
-        reponseAPI = findViewById(R.id.reponseAPI);
 
         // Liens d'écoute sur la barre de navigation
         mBottomBar.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -146,60 +111,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         switch (requestCode) {
             case REQUEST_IMAGE_CAPTURE:
                 if(resultCode == RESULT_OK) {
-                    photoBase64 = data.getStringExtra("photoBase64");
-
-                    AsyncTask.execute(new Runnable() {
-                        @Override
-                        public void run() {
-                            setupAPIClient();
-                            runGoogleAPI();
-                        }
-                    });
-
+                    String photoBase64 = data.getStringExtra("photoBase64");
+                    Intent addExpenseWithData = new Intent(MainActivity.this, NewExpensesActivity.class);
+                    addExpenseWithData.putExtra("requestDataToAPI", true);
+                    addExpenseWithData.putExtra("photoBase64", photoBase64);
+                    startActivity(addExpenseWithData);
                 }
+                break;
         }
     }
-
-    /*********
-     *  API  *
-     *********/
-
-    // Configure le client qui va interagir avec les serveurs Google
-    private void setupAPIClient(){
-        Vision.Builder visionBuilder = new Vision.Builder( new NetHttpTransport(), new AndroidJsonFactory(), null);
-        String cleAPI = getString(R.string.google_vision_ocr_api_key); // CLE PRIVEE ---> vous DEVEZ vous procurer votre propre clé avec Google
-        visionBuilder.setVisionRequestInitializer(new VisionRequestInitializer(cleAPI));
-        vision = visionBuilder.build();
-    }
-
-    private void runGoogleAPI() {
-        // Type d'analyse d'image
-        Feature desiredFeature = new Feature();
-        desiredFeature.setType("TEXT_DETECTION");
-
-        Image inputImage = new Image();
-        inputImage.encodeContent(com.google.api.client.util.Base64.decodeBase64(photoBase64));
-
-        AnnotateImageRequest request = new AnnotateImageRequest();
-        request.setImage(inputImage);
-        request.setFeatures(Arrays.asList(desiredFeature));
-
-        BatchAnnotateImagesRequest batchRequest = new BatchAnnotateImagesRequest();
-        batchRequest.setRequests(Arrays.asList(request));
-
-        // Réponse du serveur
-        BatchAnnotateImagesResponse batchResponse = new BatchAnnotateImagesResponse();
-        try {
-            batchResponse = vision.images().annotate(batchRequest).execute();
-        } catch (IOException e) {
-            Toast.makeText(getApplicationContext(), "Impossible d'accéder à la reconnaissance de textes.", Toast.LENGTH_LONG).show();
-            Log.d("API Run :", e.toString());
-        }
-
-        final TextAnnotation text = batchResponse.getResponses().get(0).getFullTextAnnotation();
-        System.out.println(text.getText());
-    }
-
 
     /*****************
      *  PERMISSIONS  *

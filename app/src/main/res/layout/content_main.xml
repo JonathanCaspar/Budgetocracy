@@ -8,10 +8,4 @@
     tools:context="projet.ift2905.budgetocracy.MainActivity"
     tools:showIn="@layout/app_bar_main">
 
-    <TextView
-        android:id="@+id/reponseAPI"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentStart="true"
-        android:text="TextView" />
 </RelativeLayout>

@@ -10,4 +10,8 @@
     <string name="scan">Scan</string>
     <string name="expensesAdd">Ajout dépenses</string>
     <string name="categorieNameActivity">Toutes les dépenses</string>
+    <string name="amount">Montant</string>
+    <string name="name">Nom</string>
+    <string name="category">Catégorie</string>
+    <string name="save">Sauvegarder</string>
 </resources>

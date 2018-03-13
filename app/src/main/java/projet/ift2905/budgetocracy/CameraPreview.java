@@ -8,7 +8,7 @@ import android.view.SurfaceView;
 
 import java.io.IOException;
 @SuppressWarnings( "deprecation" )
-/** A basic Camera preview class */
+
 public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
     private SurfaceHolder mHolder;
     private Camera mCamera;

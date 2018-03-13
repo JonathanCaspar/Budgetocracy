@@ -3,20 +3,91 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
-        app:popupTheme="@style/AppTheme.PopupOverlay" />
+        app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:titleTextColor="@color/colorWhite" />
 
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/toolbar"
+        android:orientation="vertical">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="60dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <EditText
+                    android:id="@+id/expenseName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="40dp"
+                    android:layout_marginRight="40dp"
+                    android:layout_marginTop="51dp"
+                    android:ems="10"
+                    android:hint="@string/name"
+                    android:inputType="textMultiLine" />
+
+                <EditText
+                    android:id="@+id/expenseCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="40dp"
+                    android:layout_marginRight="40dp"
+                    android:layout_marginTop="25dp"
+                    android:ems="10"
+                    android:hint="@string/category"
+                    android:inputType="textPersonName" />
+
+                <EditText
+                    android:id="@+id/expenseAmount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="40dp"
+                    android:layout_marginRight="40dp"
+                    android:layout_marginTop="22dp"
+                    android:ems="10"
+                    android:hint="@string/amount"
+                    android:inputType="numberDecimal" />
+
+                <EditText
+                    android:id="@+id/expenseDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="40dp"
+                    android:layout_marginRight="40dp"
+                    android:layout_marginTop="26dp"
+                    android:ems="10"
+                    android:inputType="date" />
+            </LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/addButton"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="185dp"
-        android:text="New expenses Content"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display3" />
+        android:background="@color/colorPrimaryDark"
+        android:backgroundTint="@color/colorPrimary"
+        android:elevation="0dp"
+        android:padding="20dp"
+        android:text="@string/save"
+        android:textAppearance="@style/TextAppearance.AppCompat.Button"
+        android:textColor="@color/colorWhite" />
+
 </RelativeLayout>
