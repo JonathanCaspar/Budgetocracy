@@ -31,7 +31,7 @@ import java.util.Date;
 
 public class NewExpensesActivity extends AppCompatActivity {
 
-    private ProgressDialog mDialog;
+    private ProgressDialog mDialog = null;
     private Vision vision; // Client API
 
     private EditText addName;
@@ -90,7 +90,7 @@ public class NewExpensesActivity extends AppCompatActivity {
         protected String doInBackground(String... photoBase64) {
 
             Vision.Builder visionBuilder = new Vision.Builder( new NetHttpTransport(), new AndroidJsonFactory(), null);
-            String cleAPI = getString(R.string.google_vision_ocr_api_key); // CLE PRIVEE ---> vous DEVEZ vous procurer votre propre clé avec Google
+            String cleAPI = "AIzaSyCtMmGlTBQgA28OMFv8ZeCxSkVIh7-9vPk"; // CLE PRIVEE ---> vous DEVEZ vous procurer votre propre clé avec Google
             visionBuilder.setVisionRequestInitializer(new VisionRequestInitializer(cleAPI));
             vision = visionBuilder.build();
 
