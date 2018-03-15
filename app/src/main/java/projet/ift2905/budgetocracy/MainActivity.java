@@ -30,6 +30,16 @@ import java.util.Date;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
+    /****************
+     * DATA BASE TEST
+     ****************/
+    DBHelper_Budget DB_Budget;
+    DBHelper_Expenses DB_Expenses;
+    DBHelper_F_Expenses DB_F_Expenses;
+    /****************
+     * END OF TEST
+     ****************/
+
     // INTERFACE
     private BottomNavigationViewEx mBottomBar; // Menu de l'écran principal
 
@@ -41,6 +51,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        /****************
+         * DATA BASE TEST
+         ****************/
+        DB_Budget = new DBHelper_Budget(this);
+        //DB_Expenses = new DBHelper_Expenses(this);
+        //DB_F_Expenses = new DBHelper_F_Expenses(this);
+        /****************
+         * END OF TEST
+         ****************/
+
+
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
