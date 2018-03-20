@@ -22,7 +22,6 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
 
     public DBHelper_Expenses(Context context) {
         super(context, DATABASE_NAME_EXPENSES, null, 1);
-        SQLiteDatabase db = this.getReadableDatabase();
     }
 
     @Override
