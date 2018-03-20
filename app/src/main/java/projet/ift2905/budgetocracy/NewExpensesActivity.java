@@ -1,14 +1,19 @@
 package projet.ift2905.budgetocracy;
 
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -40,6 +45,7 @@ public class NewExpensesActivity extends AppCompatActivity {
     private EditText addAmount;
     private Button addButton;
 
+    String[] datasource = {"Alimentation", "Logement", "Téléphone", "Loisirs", "Transport"};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,10 +55,28 @@ public class NewExpensesActivity extends AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
 
-
+        // Données à entrer
         addName = findViewById(R.id.expenseName);
+        addCategory = findViewById(R.id.expenseCategory);
+        addAmount = findViewById(R.id.expenseAmount);
         addDate = findViewById(R.id.expenseDate);
-        addDate.setText("9 Mars 2018");
+
+        addCategory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(NewExpensesActivity.this);
+                builder.setTitle(R.string.pick_category);
+                builder.setItems(datasource, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        addCategory.setText(datasource[which]);
+                    }
+                });
+                AlertDialog alert = builder.create();
+                alert.show();
+            }
+        });
+        addDate.setText(getCurrentDate());
 
         // Ajout dû à un scan ?
 
@@ -61,6 +85,24 @@ public class NewExpensesActivity extends AppCompatActivity {
             LoadDataFromImage task = new LoadDataFromImage(this);
             task.execute(photoBase64);
         }
+    }
+
+    public void showDatePickerDialog(View v){
+        DialogFragment fragment = new DatePickerFragment();
+        fragment.show(getSupportFragmentManager(),"datePicker");
+    }
+
+
+    public void updateDate(String date){
+        addDate.setText(date);
+    }
+
+    public static String getCurrentDate(){
+        final Calendar c = Calendar.getInstance();
+        String year = String.valueOf(c.get(Calendar.YEAR));
+        String month = String.valueOf(c.get(Calendar.MONTH) + 1);
+        String day = String.valueOf(c.get(Calendar.DAY_OF_MONTH));
+        return (day + "/" + month + "/" + year);
     }
 
 
@@ -147,12 +189,16 @@ public class NewExpensesActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mDialog.dismiss();
+        if(mDialog != null) {
+            mDialog.dismiss();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mDialog.dismiss();
+        if(mDialog != null) {
+            mDialog.dismiss();
+        }
     }
 }
