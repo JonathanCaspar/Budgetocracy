@@ -1,6 +1,8 @@
 package projet.ift2905.budgetocracy;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -32,7 +34,7 @@ public class DBHelper_F_Expenses extends SQLiteOpenHelper {
                 +COL_F_EXPENSES_1+" INTEGER PRIMARY KEY AUTOINCREMENT  , "
                 +COL_F_EXPENSES_2+" TEXT , "
                 +COL_F_EXPENSES_3+" FLOAT , "
-                +COL_F_EXPENSES_4+" INTEGER , "
+                +COL_F_EXPENSES_4+" TEXT , "
                 +COL_F_EXPENSES_5+" INTEGER , "
                 +COL_F_EXPENSES_6+" INTEGER ) ";
         db.execSQL(sql);
@@ -43,5 +45,47 @@ public class DBHelper_F_Expenses extends SQLiteOpenHelper {
         String sql = "DROP TABLE IF EXISTS "+TABLE_NAME_F_EXPENSES;
         db.execSQL(sql);
         onCreate(db);
+    }
+
+    /**** EXEMPLE INSERT  *****/
+    public boolean insertDataName(String name, float amount, String date, int frequency, int period){
+        SQLiteDatabase db = this.getReadableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COL_F_EXPENSES_2,name);
+        contentValues.put(COL_F_EXPENSES_3,amount);
+        contentValues.put(COL_F_EXPENSES_4,date);
+        contentValues.put(COL_F_EXPENSES_5,frequency);
+        contentValues.put(COL_F_EXPENSES_6,period);
+        long result = db.insert(TABLE_NAME_F_EXPENSES,null,contentValues);
+        if (result==-1) return false;
+        return true;
+    }
+
+    public Cursor getAllData(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("select * from "+TABLE_NAME_F_EXPENSES,null);
+    }
+
+    public Boolean updateData(String id,String name, float amount, String date, int frequency, int period ){
+        SQLiteDatabase db = this.getReadableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COL_F_EXPENSES_1,id);
+        contentValues.put(COL_F_EXPENSES_2,name);
+        contentValues.put(COL_F_EXPENSES_3,amount);
+        contentValues.put(COL_F_EXPENSES_4,date);
+        contentValues.put(COL_F_EXPENSES_5,frequency);
+        contentValues.put(COL_F_EXPENSES_6,period);
+        db.update(TABLE_NAME_F_EXPENSES,contentValues,"ID = ?",new String[] {id});
+        return true;
+    }
+
+    public Integer deleteData (String id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_NAME_F_EXPENSES, "ID = ?",new String[] {id});
+    }
+
+    public boolean deleteDataBase (Context context) {
+        context.deleteDatabase(DATABASE_NAME_F_EXPENSES);
+        return true;
     }
 }

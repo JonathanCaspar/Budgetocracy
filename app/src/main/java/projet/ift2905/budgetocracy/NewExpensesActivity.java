@@ -55,6 +55,7 @@ public class NewExpensesActivity extends AppCompatActivity {
         addDate.setText("9 Mars 2018");
 
         // Ajout dû à un scan ?
+
         if(getIntent().getBooleanExtra("requestDataToAPI",false)){ // Scan effectué
             String[] photoBase64 = {getIntent().getStringExtra("photoBase64")};
             LoadDataFromImage task = new LoadDataFromImage(this);

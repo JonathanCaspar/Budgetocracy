@@ -2,6 +2,7 @@ package projet.ift2905.budgetocracy;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -18,6 +19,7 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
     public static final String COL_BUDGET_3 = "AMOUNT";
     public static final String COL_BUDGET_4 = "REMAINING";
 
+    SQLiteDatabase DB;
 
     public DBHelper_Budget(Context context) {
         super(context, DATABASE_NAME_BUDGET, null, 1);
@@ -41,7 +43,6 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-
     /**** EXEMPLE INSERT  *****/
     public boolean insertDataName(String name, float amount, float remaining){
         SQLiteDatabase db = this.getReadableDatabase();
@@ -50,9 +51,35 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
         contentValues.put(COL_BUDGET_3,amount);
         contentValues.put(COL_BUDGET_4,remaining);
         long result = db.insert(TABLE_NAME_BUDGET,null,contentValues);
-
         if (result==-1) return false;
         return true;
     }
+
+    public Cursor getAllData(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("select * from "+TABLE_NAME_BUDGET,null);
+    }
+
+    public Boolean updateData(String id,String name, float amount, float remaining ){
+        SQLiteDatabase db = this.getReadableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(COL_BUDGET_1,id);
+        contentValues.put(COL_BUDGET_2,name);
+        contentValues.put(COL_BUDGET_3,amount);
+        contentValues.put(COL_BUDGET_4,remaining);
+        db.update(TABLE_NAME_BUDGET,contentValues,"ID = ?",new String[] {id});
+        return true;
+    }
+
+    public Integer deleteData (String id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        return db.delete(TABLE_NAME_BUDGET, "ID = ?",new String[] {id});
+    }
+
+    public boolean deleteDataBase (Context context) {
+        context.deleteDatabase(DATABASE_NAME_BUDGET);
+        return true;
+    }
+
 
 }
