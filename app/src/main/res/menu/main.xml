@@ -9,6 +9,6 @@
     <item
         android:id="@+id/searchMenuItem"
         android:icon="@drawable/ic_search_black_24dp"
-        android:title="@android:string/search_go"
-        app:showAsAction="ifRoom" />
+        android:title="Search"
+        app:showAsAction="ifRoom"/>
 </menu>

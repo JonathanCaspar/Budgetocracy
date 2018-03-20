@@ -10,13 +10,16 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:theme="@style/AppTheme.AppBarOverlay"
         app:titleTextColor="@color/colorWhite" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/toolbar"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
 
         <ScrollView
             android:layout_width="match_parent"
@@ -28,49 +31,87 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <EditText
-                    android:id="@+id/expenseName"
+                <android.support.design.widget.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="40dp"
-                    android:layout_marginRight="40dp"
-                    android:layout_marginTop="51dp"
-                    android:ems="10"
-                    android:hint="@string/name"
-                    android:inputType="textMultiLine" />
+                    android:layout_marginBottom="25dp"
+                    android:layout_marginTop="40dp">
 
-                <EditText
-                    android:id="@+id/expenseCategory"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="40dp"
-                    android:layout_marginRight="40dp"
-                    android:layout_marginTop="25dp"
-                    android:ems="10"
-                    android:hint="@string/category"
-                    android:inputType="textPersonName" />
+                    <EditText
+                        android:id="@+id/expenseName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="40dp"
+                        android:layout_marginRight="40dp"
+                        android:layout_marginTop="51dp"
+                        android:ems="10"
+                        android:hint="@string/name"
+                        android:inputType="textMultiLine" />
+                </android.support.design.widget.TextInputLayout>
 
-                <EditText
-                    android:id="@+id/expenseAmount"
+                <android.support.design.widget.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="40dp"
-                    android:layout_marginRight="40dp"
-                    android:layout_marginTop="22dp"
-                    android:ems="10"
-                    android:hint="@string/amount"
-                    android:inputType="numberDecimal" />
+                    android:layout_marginBottom="25dp">
 
-                <EditText
-                    android:id="@+id/expenseDate"
+                    <EditText
+                        android:id="@+id/expenseCategory"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="40dp"
+                        android:layout_marginRight="40dp"
+                        android:layout_marginTop="25dp"
+                        android:ems="10"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:hint="@string/category"
+                        android:inputType="textPersonName"
+                        android:onClick="showCategoryPicker" />
+                </android.support.design.widget.TextInputLayout>
+
+                <android.support.design.widget.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="40dp"
-                    android:layout_marginRight="40dp"
-                    android:layout_marginTop="26dp"
-                    android:ems="10"
-                    android:inputType="date" />
+                    android:layout_marginBottom="25dp">
+
+                    <EditText
+                        android:id="@+id/expenseAmount"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="40dp"
+                        android:layout_marginRight="40dp"
+                        android:layout_marginTop="22dp"
+                        android:ems="10"
+                        android:hint="@string/amount"
+                        android:inputType="numberDecimal" />
+                </android.support.design.widget.TextInputLayout>
+
+                <ToggleButton
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="ToggleButton" />
+
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="25dp">
+
+                    <EditText
+                        android:id="@+id/expenseDate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="40dp"
+                        android:layout_marginRight="40dp"
+                        android:layout_marginTop="26dp"
+                        android:ems="10"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:hint="@string/date"
+                        android:inputType="date"
+                        android:onClick="showDatePickerDialog" />
+                </android.support.design.widget.TextInputLayout>
             </LinearLayout>
+
         </ScrollView>
 
     </LinearLayout>
@@ -85,7 +126,6 @@
         android:background="@color/colorPrimaryDark"
         android:backgroundTint="@color/colorPrimary"
         android:elevation="0dp"
-        android:padding="20dp"
         android:text="@string/save"
         android:textAppearance="@style/TextAppearance.AppCompat.Button"
         android:textColor="@color/colorWhite" />

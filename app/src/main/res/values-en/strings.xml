@@ -13,4 +13,7 @@
     <string name="name">Name</string>
     <string name="category">Category</string>
     <string name="save">Save</string>
+    <string name="pick_category">Pick a category</string>
+    <string name="budget">Budget</string>
+    <string name="date">Date</string>
 </resources>
