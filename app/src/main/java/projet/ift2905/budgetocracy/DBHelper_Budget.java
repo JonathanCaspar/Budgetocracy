@@ -19,8 +19,6 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
     public static final String COL_BUDGET_3 = "AMOUNT";
     public static final String COL_BUDGET_4 = "REMAINING";
 
-    SQLiteDatabase DB;
-
     public DBHelper_Budget(Context context) {
         super(context, DATABASE_NAME_BUDGET, null, 1);
 
