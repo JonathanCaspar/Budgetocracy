@@ -9,7 +9,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         app:popupTheme="@style/AppTheme.PopupOverlay" />
-
+    <!--
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
@@ -19,4 +19,13 @@
         android:layout_marginTop="185dp"
         android:text="Graphics Content"
         android:textAppearance="@style/TextAppearance.AppCompat.Display3" />
+    -->
+    <com.github.mikephil.charting.charts.PieChart
+        android:id="@+id/piechart_1"
+        android:layout_width="400sp"
+        android:layout_height="400sp"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/toolbar" />
+
+
 </RelativeLayout>

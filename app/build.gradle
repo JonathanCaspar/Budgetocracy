@@ -20,6 +20,8 @@ android {
     }
 }
 
+
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:27.1.0'
@@ -35,4 +37,8 @@ dependencies {
     compile 'com.google.code.findbugs:jsr305:2.0.1'
     compile 'commons-io:commons-io:2.5'
     compile 'com.android.support:appcompat-v7:27.1.0'
+
+    /**  CHART CODE **/
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
 }
+
