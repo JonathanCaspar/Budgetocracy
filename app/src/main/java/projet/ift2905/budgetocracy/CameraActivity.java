@@ -32,7 +32,7 @@ public class CameraActivity extends AppCompatActivity {
     private FloatingActionButton captureButton;
     private FrameLayout cameraFrame;
 
-    private static  final int FOCUS_AREA_SIZE= 300;
+    private static  final int FOCUS_AREA_SIZE = 300;
 
 
     @Override

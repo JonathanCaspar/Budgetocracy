@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -13,6 +14,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -28,7 +30,27 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static projet.ift2905.budgetocracy.DBHelper_Budget.TABLE_NAME_BUDGET;
+
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+    /****************
+     * DATA BASE TEST
+     ****************/
+    DBHelper_Budget DB_Budget;
+    DBHelper_Expenses DB_Expenses;
+    DBHelper_F_Expenses DB_F_Expenses;
+
+    public void showMessage (String title, String message){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.show();
+    }
+    /****************
+     * END OF TEST
+     ****************/
 
     // INTERFACE
     private BottomNavigationViewEx mBottomBar; // Menu de l'écran principal
@@ -41,6 +63,38 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        /****************
+         * DATA BASE TEST
+         ****************/
+
+
+        //log.d("CREATION","message");
+        DB_Budget = new DBHelper_Budget(this);
+        DB_Budget.deleteDataBase(this);
+        DB_Budget.insertDataName("Video Games",300.f,200.5f);
+        /** Cursor is the pointer that traverse the data*/
+        Cursor result = DB_Budget.getAllData();
+
+        if (result.getCount()==0){
+            showMessage("Error","Nothing found");
+        }
+
+        /** Buffer will stock the data filtred from the DATABASE*/
+        StringBuffer buffer = new StringBuffer();
+        while (result.moveToNext()){
+            buffer.append("ID :"+result.getString(0)+"\n");
+            buffer.append("NAME :"+result.getString(1)+"\n");
+            buffer.append("AMOUNT :"+result.getString(2)+"\n");
+            buffer.append("REMAINING :"+result.getString(3)+"\n");
+        }
+        showMessage("Data",buffer.toString());
+
+        DB_Expenses = new DBHelper_Expenses(this);
+        DB_F_Expenses = new DBHelper_F_Expenses(this);
+        /****************
+         * END OF TEST
+         ****************/
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
