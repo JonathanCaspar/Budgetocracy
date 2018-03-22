@@ -32,77 +32,67 @@
                 android:orientation="vertical">
 
                 <android.support.design.widget.TextInputLayout
+                    android:id="@+id/expenseName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="25dp"
-                    android:layout_marginTop="40dp">
+                    android:layout_marginBottom="15dp"
+                    android:layout_marginLeft="40dp"
+                    android:layout_marginRight="40dp"
+                    android:layout_marginTop="20dp">
 
                     <EditText
-                        android:id="@+id/expenseName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="40dp"
-                        android:layout_marginRight="40dp"
-                        android:layout_marginTop="51dp"
                         android:ems="10"
                         android:hint="@string/name"
                         android:inputType="textMultiLine" />
                 </android.support.design.widget.TextInputLayout>
 
                 <android.support.design.widget.TextInputLayout
+                    android:id="@+id/expenseCategory"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="25dp">
+                    android:layout_marginBottom="15dp"
+                    android:layout_marginLeft="40dp"
+                    android:layout_marginRight="40dp">
 
                     <EditText
-                        android:id="@+id/expenseCategory"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="40dp"
-                        android:layout_marginRight="40dp"
-                        android:layout_marginTop="25dp"
                         android:ems="10"
                         android:focusable="false"
                         android:focusableInTouchMode="false"
                         android:hint="@string/category"
-                        android:inputType="textPersonName"
-                        android:onClick="showCategoryPicker" />
+                        android:inputType="textPersonName" />
                 </android.support.design.widget.TextInputLayout>
 
                 <android.support.design.widget.TextInputLayout
+                    android:id="@+id/expenseAmount"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="25dp">
+                    android:layout_marginBottom="15dp"
+                    android:layout_marginLeft="40dp"
+                    android:layout_marginRight="40dp">
 
                     <EditText
-                        android:id="@+id/expenseAmount"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="40dp"
-                        android:layout_marginRight="40dp"
-                        android:layout_marginTop="22dp"
                         android:ems="10"
                         android:hint="@string/amount"
                         android:inputType="numberDecimal" />
                 </android.support.design.widget.TextInputLayout>
 
-                <ToggleButton
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="ToggleButton" />
-
                 <android.support.design.widget.TextInputLayout
+                    android:id="@+id/expenseDate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="25dp">
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginLeft="40dp"
+                    android:layout_marginRight="40dp">
 
                     <EditText
-                        android:id="@+id/expenseDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="40dp"
-                        android:layout_marginRight="40dp"
-                        android:layout_marginTop="26dp"
                         android:ems="10"
                         android:focusable="false"
                         android:focusableInTouchMode="false"
@@ -110,14 +100,39 @@
                         android:inputType="date"
                         android:onClick="showDatePickerDialog" />
                 </android.support.design.widget.TextInputLayout>
-            </LinearLayout>
 
+                <info.hoang8f.android.segmented.SegmentedGroup
+                    xmlns:segmentedgroup="http://schemas.android.com/apk/res-auto"
+                    android:id="@+id/choixRecurrence"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center"
+                    segmentedgroup:sc_border_width="2dp"
+                    segmentedgroup:sc_corner_radius="10dp">
+
+                    <RadioButton
+                        android:id="@+id/choix_unique_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/choix_unique_button"
+                        style="@style/RadioButton" />
+
+                    <RadioButton
+                        android:id="@+id/choix_recurrent_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/choix_recurrent_button"
+                        style="@style/RadioButton" />
+                </info.hoang8f.android.segmented.SegmentedGroup>
+            </LinearLayout>
         </ScrollView>
 
     </LinearLayout>
 
     <Button
-        android:id="@+id/addButton"
+        android:id="@+id/addExpense"
         style="@style/Widget.AppCompat.Button.Borderless"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

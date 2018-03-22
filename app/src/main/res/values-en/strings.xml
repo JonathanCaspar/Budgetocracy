@@ -16,4 +16,17 @@
     <string name="pick_category">Pick a category</string>
     <string name="budget">Budget</string>
     <string name="date">Date</string>
+    <string name="choix_recurrent_button">Recurrent</string>
+    <string name="choix_unique_button">Unique</string>
+    <string name="pick_recurrence">Repeat every :</string>
+    <string name="every_week">Week</string>
+    <string name="every_month">Month</string>
+    <string name="every_year">Year</string>
+    <string name="frequency">Frequency :</string>
+    <string name="OK">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="empty_name_error">You must enter a name.</string>
+    <string name="successful_expense_add">Expense successfully added !</string>
+    <string name="empty_category_error">You must pick a category.</string>
+    <string name="empty_amount_error">You must enter an amount.</string>
 </resources>

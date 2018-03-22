@@ -16,8 +16,9 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
     public static final String TABLE_NAME_EXPENSES = "expenses_table";
     public static final String COL_EXPENSES_1 = "ID";
     public static final String COL_EXPENSES_2 = "NAME";
-    public static final String COL_EXPENSES_3 = "AMOUNT";
-    public static final String COL_EXPENSES_4 = "DATE";
+    public static final String COL_EXPENSES_3 = "CATEGORY";
+    public static final String COL_EXPENSES_4 = "AMOUNT";
+    public static final String COL_EXPENSES_5 = "DATE";
 
 
     public DBHelper_Expenses(Context context) {
@@ -26,11 +27,12 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String sql = "create table" +TABLE_NAME_EXPENSES+ "( "
-                +COL_EXPENSES_1+" INTEGER PRIMARY KEY AUTOINCREMENT  , "
-                +COL_EXPENSES_2+" TEXT , "
-                +COL_EXPENSES_3+" FLOAT , "
-                +COL_EXPENSES_4+" TEXT ) ";
+        String sql = "CREATE TABLE " +TABLE_NAME_EXPENSES+ " ("
+                +COL_EXPENSES_1+" INTEGER PRIMARY KEY AUTOINCREMENT,"
+                +COL_EXPENSES_2+" TEXT,"
+                +COL_EXPENSES_3+" TEXT,"
+                +COL_EXPENSES_4+" FLOAT,"
+                +COL_EXPENSES_5+" TEXT) ";
         db.execSQL(sql);
     }
 
@@ -42,12 +44,13 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
     }
 
     /**** EXEMPLE INSERT  *****/
-    public boolean insertDataName(String name, float amount, String date){
+    public boolean insertDataName(String name, String category, float amount, String date){
         SQLiteDatabase db = this.getReadableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL_EXPENSES_2,name);
-        contentValues.put(COL_EXPENSES_3,amount);
-        contentValues.put(COL_EXPENSES_4,date);
+        contentValues.put(COL_EXPENSES_3,category);
+        contentValues.put(COL_EXPENSES_4,amount);
+        contentValues.put(COL_EXPENSES_5,date);
         long result = db.insert(TABLE_NAME_EXPENSES,null,contentValues);
         if (result==-1) return false;
         return true;
@@ -58,13 +61,14 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
         return db.rawQuery("select * from "+TABLE_NAME_EXPENSES,null);
     }
 
-    public Boolean updateData(String id,String name, float amount, String date ){
+    public Boolean updateData(String id,String name, String category, float amount, String date ){
         SQLiteDatabase db = this.getReadableDatabase();
         ContentValues contentValues = new ContentValues();
         contentValues.put(COL_EXPENSES_1,id);
         contentValues.put(COL_EXPENSES_2,name);
-        contentValues.put(COL_EXPENSES_3,amount);
-        contentValues.put(COL_EXPENSES_4,date);
+        contentValues.put(COL_EXPENSES_3,category);
+        contentValues.put(COL_EXPENSES_4,amount);
+        contentValues.put(COL_EXPENSES_5,date);
         db.update(TABLE_NAME_EXPENSES,contentValues,"ID = ?",new String[] {id});
         return true;
     }

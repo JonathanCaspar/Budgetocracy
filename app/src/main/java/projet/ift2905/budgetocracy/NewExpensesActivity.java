@@ -5,17 +5,19 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.Toast;
 
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
@@ -34,18 +36,24 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 
+import info.hoang8f.android.segmented.SegmentedGroup;
+
 public class NewExpensesActivity extends AppCompatActivity {
 
     private ProgressDialog mDialog = null;
     private Vision vision; // Client API
 
-    private EditText addName;
-    private EditText addCategory;
-    private EditText addDate;
-    private EditText addAmount;
-    private Button addButton;
+    private TextInputLayout expenseName;
+    private TextInputLayout expenseCategory;
+    private TextInputLayout expenseDate;
+    private TextInputLayout expenseAmount;
+    private SegmentedGroup choixRecurrence;
+    private RadioButton uniqueButton;
+    private RadioButton recurrenceButton;
+    private Button expenseAddButton;
 
     String[] datasource = {"Alimentation", "Logement", "Téléphone", "Loisirs", "Transport"};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,12 +64,24 @@ public class NewExpensesActivity extends AppCompatActivity {
         ab.setDisplayHomeAsUpEnabled(true);
 
         // Données à entrer
-        addName = findViewById(R.id.expenseName);
-        addCategory = findViewById(R.id.expenseCategory);
-        addAmount = findViewById(R.id.expenseAmount);
-        addDate = findViewById(R.id.expenseDate);
+        expenseName = findViewById(R.id.expenseName);
+        expenseCategory = findViewById(R.id.expenseCategory);
+        expenseAmount = findViewById(R.id.expenseAmount);
+        expenseDate = findViewById(R.id.expenseDate);
+        choixRecurrence = findViewById(R.id.choixRecurrence);
+        uniqueButton = findViewById(R.id.choix_unique_button);
+        recurrenceButton = findViewById(R.id.choix_recurrent_button);
+        expenseAddButton = findViewById(R.id.addExpense);
 
-        addCategory.setOnClickListener(new View.OnClickListener() {
+        // Ajout de données via un scan ?
+        if(getIntent().getBooleanExtra("requestDataToAPI",false)){ // Scan effectué
+            String[] photoBase64 = {getIntent().getStringExtra("photoBase64")};
+            LoadDataFromImage task = new LoadDataFromImage(this);
+            task.execute(photoBase64);
+        }
+
+        // Choix de catégorie
+        expenseCategory.getEditText().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(NewExpensesActivity.this);
@@ -69,23 +89,173 @@ public class NewExpensesActivity extends AppCompatActivity {
                 builder.setItems(datasource, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        addCategory.setText(datasource[which]);
+                        expenseCategory.getEditText().setText(datasource[which]);
                     }
                 });
                 AlertDialog alert = builder.create();
                 alert.show();
             }
         });
-        addDate.setText(getCurrentDate());
+        expenseDate.getEditText().setText(getCurrentDate());
 
-        // Ajout dû à un scan ?
+        // Choix de la fréquence de période
+        recurrenceButton.setOnClickListener(new View.OnClickListener() {
 
-        if(getIntent().getBooleanExtra("requestDataToAPI",false)){ // Scan effectué
-            String[] photoBase64 = {getIntent().getStringExtra("photoBase64")};
-            LoadDataFromImage task = new LoadDataFromImage(this);
-            task.execute(photoBase64);
+            private AlertDialog alertDialog = null;
+            private int choix = 0;
+
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(NewExpensesActivity.this);
+                builder.setTitle(R.string.frequency);
+                builder.setIcon(R.drawable.ic_timer_24dp);
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if(choix == 0) {
+                            Toast.makeText(getApplicationContext(), "Veuillez d'abord choisir une option.", Toast.LENGTH_LONG).show();
+                        }
+                        else {
+                            switch (choix) {
+                                case 1:
+                                    recurrenceButton.setText("Chaque semaine");
+                                    choix = 0;
+                                    break;
+                                case 2:
+                                    recurrenceButton.setText("Chaque mois");
+                                    choix = 0;
+                                    break;
+                                case 3:
+                                    recurrenceButton.setText("Chaque année");
+                                    choix = 0;
+                                    break;
+                            }
+                            alertDialog.dismiss();
+                        }
+                    }
+                });
+                builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        alertDialog.cancel();
+                        uniqueButton.setChecked(true);
+                    }
+                });
+                View popupLayout = getLayoutInflater().inflate(R.layout.popup_choix_recurrence, null);
+                builder.setView(popupLayout);
+
+                // Elements du popup
+                final SegmentedGroup popup = (SegmentedGroup) popupLayout.findViewById(R.id.popupRecurrenceChoix);
+                RadioButton freqBtn1 = popup.findViewById(R.id.every_week);
+                RadioButton freqBtn2 = popup.findViewById(R.id.every_month);
+                RadioButton freqBtn3 = popup.findViewById(R.id.every_year);
+
+                // Liens d'écoute sur boutons de récurrence
+                freqBtn1.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        choix = 1;
+                    }
+                });
+
+                freqBtn2.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        choix = 2;
+                    }
+                });
+
+                freqBtn3.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        choix = 3;
+                    }
+                });
+
+                builder.setCancelable(true);
+                alertDialog = builder.create();
+                alertDialog.show();
+                alertDialog.getButton(alertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorPrimary));
+                alertDialog.getButton(alertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorPrimary));
+            }
+        });
+
+        uniqueButton.setChecked(true);
+        uniqueButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                recurrenceButton.setText(R.string.choix_recurrent_button);
+            }
+        });
+
+        expenseAddButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(checkInputValidity()) {
+                    //Ajout de la dépense à la base de données
+                    String[] dataToSave = {expenseName.getEditText().getText().toString(),
+                            expenseCategory.getEditText().getText().toString(),
+                            expenseAmount.getEditText().getText().toString(),
+                            expenseDate.getEditText().getText().toString()};
+
+                    Intent intent = getIntent();
+                    intent.putExtra("dataToSave", dataToSave);
+                    setResult(RESULT_OK, intent);
+                    finish();
+                }
+                else{
+                    try {
+                        // Cache le clavier
+                        InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                    } catch (Exception e) {}
+                }
+            }
+        });
+
+    }
+
+    // Vérifie que le formulaire est bien rempli SINON afficher les erreurs appropriées
+    public boolean checkInputValidity(){
+        int counter = 0;
+        // Check Name
+        if(expenseName.getEditText().getText().length() == 0) {
+            expenseName.setError(getString(R.string.empty_name_error));
+            expenseName.setErrorEnabled(true);
+            counter++;
+        }
+        else{
+            expenseName.setErrorEnabled(false);
+        }
+
+        // Check Category
+        if(expenseCategory.getEditText().getText().length() == 0) {
+            expenseCategory.setError(getString(R.string.empty_category_error));
+            expenseCategory.setErrorEnabled(true);
+            counter++;
+        }
+        else{
+            expenseCategory.setErrorEnabled(false);
+        }
+
+        // Check Amount
+        if(expenseAmount.getEditText().getText().length() == 0) {
+            expenseAmount.setError(getString(R.string.empty_amount_error));
+            expenseAmount.setErrorEnabled(true);
+            counter++;
+        }
+        else{
+            expenseAmount.setErrorEnabled(false);
+        }
+
+        if(counter == 0){
+            return true;
+        }
+        else{
+            return false;
         }
     }
+
 
     public void showDatePickerDialog(View v){
         DialogFragment fragment = new DatePickerFragment();
@@ -94,7 +264,7 @@ public class NewExpensesActivity extends AppCompatActivity {
 
 
     public void updateDate(String date){
-        addDate.setText(date);
+        expenseDate.getEditText().setText(date);
     }
 
     public static String getCurrentDate(){
@@ -180,7 +350,7 @@ public class NewExpensesActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             mDialog.dismiss();
-            addName.setText(result);
+            expenseName.getEditText().setText(result);
             Toast.makeText(getApplicationContext(), String.format("Analyse effectuée en %.1f s", (float) elapsedTime), Toast.LENGTH_SHORT).show();
         }
 

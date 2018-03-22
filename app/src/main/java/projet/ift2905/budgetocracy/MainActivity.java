@@ -19,6 +19,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
@@ -30,10 +32,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static projet.ift2905.budgetocracy.DBHelper_Budget.TABLE_NAME_BUDGET;
-
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-
     /****************
      * DATA BASE TEST
      ****************/
@@ -48,55 +47,74 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         builder.setMessage(message);
         builder.show();
     }
+    public void deleteDatabase() {
+        DB_Expenses.deleteDataBase(this);
+    }
+    public void showDatabase() {
+        /** Cursor is the pointer that traverse the data*/
+        Cursor result = DB_Expenses.getAllData();
+
+        if (result.getCount() == 0) {
+            showMessage("Error", "Nothing found");
+        }
+
+        /** Buffer will stock the data filtred from the DATABASE*/
+        StringBuffer buffer = new StringBuffer();
+        while (result.moveToNext()) {
+            buffer.append("ID: " + result.getString(0) + " - ");
+            buffer.append("NAME: " + result.getString(1) + " - ");
+            buffer.append("CATEGORY: " + result.getString(2) + " - ");
+            buffer.append("AMOUNT: " + result.getString(3) + " - ");
+            buffer.append("DATE: " + result.getString(4) + "\n\n");
+        }
+        showMessage("Data", buffer.toString());
+    }
     /****************
      * END OF TEST
      ****************/
 
     // INTERFACE
     private BottomNavigationViewEx mBottomBar; // Menu de l'écran principal
+    private Button showDBbtn;
+    private Button cleanDBbtn;
 
     final String[] PERMISSIONS = {Manifest.permission.CAMERA,
                                   Manifest.permission.WRITE_EXTERNAL_STORAGE,
                                   Manifest.permission.INTERNET};
     final int PERMISSION_ALL = 101;
     final int REQUEST_IMAGE_CAPTURE = 102;
+    final int REQUEST_EXPENSE_DATA = 103;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         /****************
          * DATA BASE TEST
          ****************/
-
-
-        //log.d("CREATION","message");
-        DB_Budget = new DBHelper_Budget(this);
-        DB_Budget.deleteDataBase(this);
-        DB_Budget.insertDataName("Video Games",300.f,200.5f);
-        /** Cursor is the pointer that traverse the data*/
-        Cursor result = DB_Budget.getAllData();
-
-        if (result.getCount()==0){
-            showMessage("Error","Nothing found");
-        }
-
-        /** Buffer will stock the data filtred from the DATABASE*/
-        StringBuffer buffer = new StringBuffer();
-        while (result.moveToNext()){
-            buffer.append("ID :"+result.getString(0)+"\n");
-            buffer.append("NAME :"+result.getString(1)+"\n");
-            buffer.append("AMOUNT :"+result.getString(2)+"\n");
-            buffer.append("REMAINING :"+result.getString(3)+"\n");
-        }
-        showMessage("Data",buffer.toString());
-
         DB_Expenses = new DBHelper_Expenses(this);
-        DB_F_Expenses = new DBHelper_F_Expenses(this);
+        DB_Expenses.insertDataName("Jeu X","Loisirs",200.5f,"20/12/2017");
+        DB_Expenses.insertDataName("Jeu Y","Loisirs",50.24f,"22/12/2017");
         /****************
          * END OF TEST
          ****************/
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        showDBbtn = findViewById(R.id.displayDB);
+        showDBbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showDatabase();
+            }
+        });
+        cleanDBbtn = findViewById(R.id.cleanDB);
+        cleanDBbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteDatabase();
+            }
+        });
 
         // Toolbar (en haut)
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -134,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         return true;
 
                     case R.id.menu_add_expenses:
-                        startActivity(new Intent(MainActivity.this, NewExpensesActivity.class));
+                        startActivityForResult(new Intent(MainActivity.this, NewExpensesActivity.class), REQUEST_EXPENSE_DATA);
                         return true;
 
                     case R.id.menu_graphiques:
@@ -164,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         switch (requestCode) {
             case REQUEST_IMAGE_CAPTURE:
-                if(resultCode == RESULT_OK) {
+                if(resultCode == RESULT_OK){
                     String photoBase64 = data.getStringExtra("photoBase64");
                     Intent addExpenseWithData = new Intent(MainActivity.this, NewExpensesActivity.class);
                     addExpenseWithData.putExtra("requestDataToAPI", true);
@@ -172,6 +190,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     startActivity(addExpenseWithData);
                 }
                 break;
+
+            case REQUEST_EXPENSE_DATA:
+                if(resultCode == RESULT_OK && data != null){
+                    Toast.makeText(getApplicationContext(), R.string.successful_expense_add, Toast.LENGTH_SHORT).show();
+                    String[] dataToAdd = data.getStringArrayExtra("dataToSave");
+                    Toast.makeText(getApplicationContext(), "Recu : "+ dataToAdd[0]+ " - "+ dataToAdd[1]+ " - "+ Float.valueOf(dataToAdd[2])+ " - "+ dataToAdd[3], Toast.LENGTH_LONG).show();
+                    DB_Expenses.insertDataName(dataToAdd[0], dataToAdd[1], Float.valueOf(dataToAdd[2]), dataToAdd[3]);
+                }
         }
     }
 
