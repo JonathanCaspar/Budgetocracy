@@ -6,6 +6,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
@@ -13,6 +14,8 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -35,12 +38,15 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 
 import info.hoang8f.android.segmented.SegmentedGroup;
 
 public class NewExpensesActivity extends AppCompatActivity {
 
     private ProgressDialog mDialog = null;
+    private DBHelper_Budget dbHelper_budget;
     private Vision vision; // Client API
 
     private TextInputLayout expenseName;
@@ -52,7 +58,8 @@ public class NewExpensesActivity extends AppCompatActivity {
     private RadioButton recurrenceButton;
     private Button expenseAddButton;
 
-    String[] datasource = {"Alimentation", "Logement", "Téléphone", "Loisirs", "Transport"};
+    private int categoryID = -1;
+    private final int REQUEST_NEW_CATEGORY = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +69,7 @@ public class NewExpensesActivity extends AppCompatActivity {
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
+        dbHelper_budget = new DBHelper_Budget(this);
 
         // Données à entrer
         expenseName = findViewById(R.id.expenseName);
@@ -74,7 +82,7 @@ public class NewExpensesActivity extends AppCompatActivity {
         expenseAddButton = findViewById(R.id.addExpense);
 
         // Ajout de données via un scan ?
-        if(getIntent().getBooleanExtra("requestDataToAPI",false)){ // Scan effectué
+        if (getIntent().getBooleanExtra("requestDataToAPI", false)) { // Scan effectué
             String[] photoBase64 = {getIntent().getStringExtra("photoBase64")};
             LoadDataFromImage task = new LoadDataFromImage(this);
             task.execute(photoBase64);
@@ -82,18 +90,56 @@ public class NewExpensesActivity extends AppCompatActivity {
 
         // Choix de catégorie
         expenseCategory.getEditText().setOnClickListener(new View.OnClickListener() {
+            private AlertDialog alertDialog = null;
+
             @Override
             public void onClick(View v) {
+                //Récupère la liste des budgets
+                Cursor data = dbHelper_budget.getAllData();
+
+                //Crée la fenêtre de base
                 AlertDialog.Builder builder = new AlertDialog.Builder(NewExpensesActivity.this);
                 builder.setTitle(R.string.pick_category);
-                builder.setItems(datasource, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        expenseCategory.getEditText().setText(datasource[which]);
+
+                if(data.getCount() > 0) {
+                    final HashMap<Integer,String> categoriesWithID = dbHelper_budget.getBudgetList();
+                    final String[] categories = new String[categoriesWithID.size()];
+                    final int[] IDs = new int[categoriesWithID.size()];
+                    int i = 0;
+
+                    Iterator it = categoriesWithID.entrySet().iterator();
+                    while (it.hasNext()) {
+                        HashMap.Entry budget = (HashMap.Entry)it.next();
+                        IDs[i] = (Integer) budget.getKey();
+                        categories[i] = (String) budget.getValue();
+                        it.remove(); // avoids a ConcurrentModificationException
                     }
-                });
-                AlertDialog alert = builder.create();
-                alert.show();
+
+                    builder.setItems(categories, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            expenseCategory.getEditText().setText(categories[which]);
+                            categoryID = IDs[which];
+                        }
+                    });
+                }
+                else{
+                    builder.setMessage(R.string.empty_category_db);
+                    builder.setNegativeButton(R.string.cancel,null);
+                    builder.setPositiveButton(R.string.add, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(NewExpensesActivity.this, NewCategoriesActivity.class);
+                            intent.putExtra("requestCode", REQUEST_NEW_CATEGORY);
+                            startActivityForResult(intent,REQUEST_NEW_CATEGORY);
+                        }
+                    });
+                }
+                builder.setCancelable(true);
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+                alertDialog.getButton(alertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorPrimary));
+                alertDialog.getButton(alertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorPrimary));
             }
         });
         expenseDate.getEditText().setText(getCurrentDate());
@@ -112,10 +158,9 @@ public class NewExpensesActivity extends AppCompatActivity {
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if(choix == 0) {
+                        if (choix == 0) {
                             Toast.makeText(getApplicationContext(), "Veuillez d'abord choisir une option.", Toast.LENGTH_LONG).show();
-                        }
-                        else {
+                        } else {
                             switch (choix) {
                                 case 1:
                                     recurrenceButton.setText("Chaque semaine");
@@ -191,10 +236,10 @@ public class NewExpensesActivity extends AppCompatActivity {
         expenseAddButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(checkInputValidity()) {
+                if (checkInputValidity()) {
                     //Ajout de la dépense à la base de données
                     String[] dataToSave = {expenseName.getEditText().getText().toString(),
-                            expenseCategory.getEditText().getText().toString(),
+                            String.valueOf(categoryID),
                             expenseAmount.getEditText().getText().toString(),
                             expenseDate.getEditText().getText().toString()};
 
@@ -202,72 +247,121 @@ public class NewExpensesActivity extends AppCompatActivity {
                     intent.putExtra("dataToSave", dataToSave);
                     setResult(RESULT_OK, intent);
                     finish();
-                }
-                else{
+                } else {
                     try {
                         // Cache le clavier
-                        InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+                        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
                         imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                 }
+            }
+        });
+
+        // Retire l'affichage d'erreur lors d'une saisie
+        expenseName.getEditText().addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                expenseName.setErrorEnabled(false);
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+        expenseCategory.getEditText().addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                expenseCategory.setErrorEnabled(false);
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+        expenseAmount.getEditText().addTextChangedListener(new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                expenseAmount.setErrorEnabled(false);
+            }
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
             }
         });
 
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch(requestCode){
+            case REQUEST_NEW_CATEGORY:
+                if(resultCode == RESULT_OK){
+                    String name = data.getStringExtra("newCategoryName");
+                    categoryID = data.getIntExtra("newCategoryID", -1);
+                    expenseCategory.getEditText().setText(name);
+                }
+                break;
+        }
+    }
+
     // Vérifie que le formulaire est bien rempli SINON afficher les erreurs appropriées
-    public boolean checkInputValidity(){
-        int counter = 0;
+    public boolean checkInputValidity() {
+        boolean allGood = true;
         // Check Name
-        if(expenseName.getEditText().getText().length() == 0) {
+        if (expenseName.getEditText().getText().length() == 0) {
             expenseName.setError(getString(R.string.empty_name_error));
             expenseName.setErrorEnabled(true);
-            counter++;
-        }
-        else{
+            allGood = false;
+        } else {
             expenseName.setErrorEnabled(false);
         }
 
         // Check Category
-        if(expenseCategory.getEditText().getText().length() == 0) {
+        if (expenseCategory.getEditText().getText().length() == 0) {
             expenseCategory.setError(getString(R.string.empty_category_error));
             expenseCategory.setErrorEnabled(true);
-            counter++;
-        }
-        else{
+            allGood = false;
+        } else {
             expenseCategory.setErrorEnabled(false);
         }
 
         // Check Amount
-        if(expenseAmount.getEditText().getText().length() == 0) {
+        if (expenseAmount.getEditText().getText().length() == 0) {
             expenseAmount.setError(getString(R.string.empty_amount_error));
             expenseAmount.setErrorEnabled(true);
-            counter++;
-        }
-        else{
+            allGood = false;
+        } else {
             expenseAmount.setErrorEnabled(false);
         }
-
-        if(counter == 0){
-            return true;
-        }
-        else{
-            return false;
-        }
+        return allGood;
     }
 
 
-    public void showDatePickerDialog(View v){
+    public void showDatePickerDialog(View v) {
         DialogFragment fragment = new DatePickerFragment();
-        fragment.show(getSupportFragmentManager(),"datePicker");
+        fragment.show(getSupportFragmentManager(), "datePicker");
     }
 
 
-    public void updateDate(String date){
+    public void updateDate(String date) {
         expenseDate.getEditText().setText(date);
     }
 
-    public static String getCurrentDate(){
+    public static String getCurrentDate() {
         final Calendar c = Calendar.getInstance();
         String year = String.valueOf(c.get(Calendar.YEAR));
         String month = String.valueOf(c.get(Calendar.MONTH) + 1);
@@ -285,7 +379,7 @@ public class NewExpensesActivity extends AppCompatActivity {
         long startTime = System.currentTimeMillis();
         long elapsedTime = 0;
 
-        public LoadDataFromImage (Context context){
+        public LoadDataFromImage(Context context) {
             ctx = context;
         }
 
@@ -302,7 +396,7 @@ public class NewExpensesActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... photoBase64) {
 
-            Vision.Builder visionBuilder = new Vision.Builder( new NetHttpTransport(), new AndroidJsonFactory(), null);
+            Vision.Builder visionBuilder = new Vision.Builder(new NetHttpTransport(), new AndroidJsonFactory(), null);
             String cleAPI = "AIzaSyCtMmGlTBQgA28OMFv8ZeCxSkVIh7-9vPk"; // CLE PRIVEE ---> vous DEVEZ vous procurer votre propre clé avec Google
             visionBuilder.setVisionRequestInitializer(new VisionRequestInitializer(cleAPI));
             vision = visionBuilder.build();
@@ -330,14 +424,13 @@ public class NewExpensesActivity extends AppCompatActivity {
             }
 
             final TextAnnotation text = batchResponse.getResponses().get(0).getFullTextAnnotation();
-            if(text != null){
+            if (text != null) {
                 String textReceived = text.getText();
                 System.out.println(textReceived);
-                elapsedTime = ((new Date()).getTime() - startTime)/1000;
+                elapsedTime = ((new Date()).getTime() - startTime) / 1000;
 
                 return textReceived;
-            }
-            else{
+            } else {
                 return null;
             }
 
@@ -359,7 +452,7 @@ public class NewExpensesActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(mDialog != null) {
+        if (mDialog != null) {
             mDialog.dismiss();
         }
     }
@@ -367,7 +460,7 @@ public class NewExpensesActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if(mDialog != null) {
+        if (mDialog != null) {
             mDialog.dismiss();
         }
     }
