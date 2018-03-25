@@ -3,18 +3,18 @@
 
     <item
         android:id="@+id/menu_categories"
-        android:icon="@drawable/ic_create_new_folder_black_24dp"
+        android:icon="@drawable/ic_create_new_folder_24dp"
         android:title="@string/categories" />
     <item
         android:id="@+id/menu_graphiques"
-        android:icon="@drawable/ic_pie_chart_black_24dp"
+        android:icon="@drawable/ic_pie_chart_24dp"
         android:title="@string/graphics" />
     <item
         android:id="@+id/menu_scan"
-        android:icon="@drawable/ic_menu_camera"
+        android:icon="@drawable/ic_add_a_photo_24dp"
         android:title="@string/scan" />
     <item
         android:id="@+id/menu_add_expenses"
-        android:icon="@drawable/ic_note_add_black_24dp"
+        android:icon="@drawable/ic_note_add_24px"
         android:title="@string/expensesAdd" />
 </menu>

@@ -4,9 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
@@ -19,84 +17,55 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static projet.ift2905.budgetocracy.DBHelper_Budget.TABLE_NAME_BUDGET;
-
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-
-    /****************
-     * DATA BASE TEST
-     ****************/
-    DBHelper_Budget DB_Budget;
-    DBHelper_Expenses DB_Expenses;
-    DBHelper_F_Expenses DB_F_Expenses;
-
-    public void showMessage (String title, String message){
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setCancelable(true);
-        builder.setTitle(title);
-        builder.setMessage(message);
-        builder.show();
-    }
-    /****************
-     * END OF TEST
-     ****************/
 
     // INTERFACE
     private BottomNavigationViewEx mBottomBar; // Menu de l'écran principal
+    private Button showDBexpense;
+    private Button showDBbudget;
+    private DBHelper_Expenses DB_Expenses;
+    private DBHelper_Budget DB_Budget;
 
     final String[] PERMISSIONS = {Manifest.permission.CAMERA,
-                                  Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                  Manifest.permission.INTERNET};
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.INTERNET};
+
     final int PERMISSION_ALL = 101;
     final int REQUEST_IMAGE_CAPTURE = 102;
+    final int REQUEST_EXPENSE_DATA = 103;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        /****************
-         * DATA BASE TEST
-         ****************/
-
-
-        //log.d("CREATION","message");
-        DB_Budget = new DBHelper_Budget(this);
-        DB_Budget.deleteDataBase(this);
-        DB_Budget.insertDataName("Video Games",300.f,200.5f);
-        /** Cursor is the pointer that traverse the data*/
-        Cursor result = DB_Budget.getAllData();
-
-        if (result.getCount()==0){
-            showMessage("Error","Nothing found");
-        }
-
-        /** Buffer will stock the data filtred from the DATABASE*/
-        StringBuffer buffer = new StringBuffer();
-        while (result.moveToNext()){
-            buffer.append("ID :"+result.getString(0)+"\n");
-            buffer.append("NAME :"+result.getString(1)+"\n");
-            buffer.append("AMOUNT :"+result.getString(2)+"\n");
-            buffer.append("REMAINING :"+result.getString(3)+"\n");
-        }
-        showMessage("Data",buffer.toString());
-
-        DB_Expenses = new DBHelper_Expenses(this);
-        DB_F_Expenses = new DBHelper_F_Expenses(this);
-        /****************
-         * END OF TEST
-         ****************/
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        DB_Expenses = new DBHelper_Expenses(this);
+        DB_Budget = new DBHelper_Budget(this);
+
+        showDBexpense = findViewById(R.id.displayDB_expense);
+        showDBexpense.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showMessage("Base de données - Dépenses :", DB_Expenses.getAllStringData());
+            }
+        });
+        showDBbudget = findViewById(R.id.displayDB_budget);
+        showDBbudget.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showMessage("Base de données - Budget :", DB_Budget.getAllStringData());
+            }
+        });
 
         // Toolbar (en haut)
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -115,13 +84,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mBottomBar.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                switch(item.getItemId()){
-                    case R.id.menu_scan :
+                switch (item.getItemId()) {
+                    case R.id.menu_scan:
                         // Si Permission accordée:
-                        if(hasPermissions(getApplicationContext(), PERMISSIONS)){
+                        if (hasPermissions(getApplicationContext(), PERMISSIONS)) {
                             Intent takePhotoIntent = new Intent(MainActivity.this, CameraActivity.class);
                             // Activité Caméra lancée dans l'attente d'une réponse (image)
-                            startActivityForResult(takePhotoIntent ,REQUEST_IMAGE_CAPTURE);
+                            startActivityForResult(takePhotoIntent, REQUEST_IMAGE_CAPTURE);
                             return true;
                         } else {
                             // Sinon: les demander
@@ -134,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         return true;
 
                     case R.id.menu_add_expenses:
-                        startActivity(new Intent(MainActivity.this, NewExpensesActivity.class));
+                        startActivityForResult(new Intent(MainActivity.this, NewExpensesActivity.class), REQUEST_EXPENSE_DATA);
                         return true;
 
                     case R.id.menu_graphiques:
@@ -164,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         switch (requestCode) {
             case REQUEST_IMAGE_CAPTURE:
-                if(resultCode == RESULT_OK) {
+                if (resultCode == RESULT_OK) {
                     String photoBase64 = data.getStringExtra("photoBase64");
                     Intent addExpenseWithData = new Intent(MainActivity.this, NewExpensesActivity.class);
                     addExpenseWithData.putExtra("requestDataToAPI", true);
@@ -172,6 +141,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     startActivity(addExpenseWithData);
                 }
                 break;
+
+            case REQUEST_EXPENSE_DATA:
+                if (resultCode == RESULT_OK && data != null) {
+                    Toast.makeText(getApplicationContext(), R.string.successful_expense_add, Toast.LENGTH_SHORT).show();
+                    String[] dataToAdd = data.getStringArrayExtra("dataToSave");
+
+                    Integer budgetID = Integer.valueOf(dataToAdd[1]);
+                    DB_Budget.updateRemainingAmount(budgetID, Float.valueOf(dataToAdd[2]));
+                    DB_Expenses.insertDataName(dataToAdd[0], budgetID, Float.valueOf(dataToAdd[2]), dataToAdd[3]);
+                }
         }
     }
 
@@ -190,16 +169,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     startActivity(new Intent(MainActivity.this, CameraActivity.class));
                 } else {
                     // Permission refusée: impossible de prendre de photo
-                    Toast.makeText(getApplicationContext(),"Permission refusée: impossible d'accéder à l'appareil photo.",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(), "Permission refusée: impossible d'accéder à l'appareil photo.", Toast.LENGTH_SHORT).show();
                 }
                 return;
         }
     }
 
     // Vérification si toutes les permissions demandées ont été acceptés
-    public boolean isAllGranted(int[] grantResults){
-        for(int i = 0; i < grantResults.length; i++){
-            if(grantResults[i] == PackageManager.PERMISSION_DENIED){
+    public boolean isAllGranted(int[] grantResults) {
+        for (int i = 0; i < grantResults.length; i++) {
+            if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
                 return false;
             }
         }
@@ -219,32 +198,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     *  Partie pas importante : gère l'affichage du Drawer (menu latéral)
-            **/
-    // Fonction utilitaire : générer un fichier .txt de la photo en encodage Base64
-    public void generateNoteOnSD(Context context, String sFileName, String sBody) {
-        try {
-            File root = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "Notes");
-            if (!root.exists()) {
-                root.mkdirs();
-            }
-            File gpxfile = new File(root, sFileName);
-            FileWriter writer = new FileWriter(gpxfile);
-            writer.append(sBody);
-            writer.flush();
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
+     * Partie pas importante : gère l'affichage du Drawer (menu latéral)
+     **/
     // Affiche le mois courant dans le Toolbar
-    public String getCurrentMonth(){
+    public String getCurrentMonth() {
         DateFormat dateFormat = new SimpleDateFormat("MM");
         Date date = new Date();
         String mois = dateFormat.format(date);
 
-        switch(mois) {
+        switch (mois) {
             case "01":
                 return "Janvier";
             case "02":
@@ -269,9 +231,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 return "Novembre";
             case "12":
                 return "Décembre";
-            default :
+            default:
                 return "Cinglinglin";
         }
+    }
+
+    public void showMessage(String title, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.show();
     }
 
     @Override
@@ -287,13 +257,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        switch (id){
+        switch (id) {
             case R.id.action_settings:
                 return true;
 
             case R.id.searchMenuItem:
                 startActivity(new Intent(MainActivity.this, ResearchActivity.class));
-            }
+        }
         return super.onOptionsItemSelected(item);
     }
 

@@ -43,4 +43,8 @@
         <item name="android:textColor">#FF4081</item>
     </style>
 
+    <style name="AlertDialogCustom" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">@color/colorPrimary</item>
+    </style>
+
 </resources>
