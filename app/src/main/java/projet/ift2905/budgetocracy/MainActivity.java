@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         //log.d("CREATION","message");
         DB_Budget = new DBHelper_Budget(this);
         DB_Budget.deleteDataBase(this);
-        DB_Budget.insertDataName("Video Games",300.f,200.5f);
+        DB_Budget.insertDataName("Video Games",400.f,200.5f);
         /** Cursor is the pointer that traverse the data*/
         Cursor result = DB_Budget.getAllData();
 
