@@ -8,6 +8,6 @@
         app:showAsAction="never" />
     <item
         android:id="@+id/searchMenuItem"
-        android:title="Search"
+        android:title="@android:string/search_go"
         app:showAsAction="ifRoom" />
 </menu>
