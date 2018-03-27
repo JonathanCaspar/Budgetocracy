@@ -2,10 +2,15 @@ package projet.ift2905.budgetocracy;
 
 
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
 
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
@@ -41,8 +46,16 @@ public class GraphicActivity extends AppCompatActivity {
         pieChart.setDragDecelerationFrictionCoef(0.95f);
         pieChart.setDrawHoleEnabled(true);
         pieChart.setHoleColor(Color.WHITE);
-        //pieChart.setHoleRadius(60.f);
-        pieChart.setTransparentCircleRadius(61f);
+        pieChart.setHoleRadius(65.f);
+        pieChart.setTransparentCircleRadius(75f);
+
+        SpannableString s = new SpannableString("Budget: 80.0$\nLeft: 25.0$");
+        s.setSpan(new RelativeSizeSpan(1.7f), 0, s.length(), 0);
+        s.setSpan(new ForegroundColorSpan(ColorTemplate.getHoloBlue()),7, 14, 0);
+        s.setSpan(new ForegroundColorSpan(Color.rgb(245,58,58)),20, s.length(), 0);
+
+        pieChart.setDrawCenterText(true);
+        pieChart.setCenterText(s);
 
         ArrayList<PieEntry> yValues = new ArrayList<>();
         yValues.add(new PieEntry(20f, ""));
@@ -56,7 +69,7 @@ public class GraphicActivity extends AppCompatActivity {
 
         ArrayList colors = new ArrayList();
         colors.add(Color.WHITE);
-        colors.add(0xFF139729);
+        colors.add(0xFF67DFF2);
         dataSet.setColors(colors);
 
         Legend l = pieChart.getLegend();
