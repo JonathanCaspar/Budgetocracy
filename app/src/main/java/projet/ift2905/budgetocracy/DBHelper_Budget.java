@@ -6,24 +6,21 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-/**
- * Created by Max on 2018-03-15.
- */
+import java.util.HashMap;
 
 public class DBHelper_Budget extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME_BUDGET = "budget.db";
-    public static final String TABLE_NAME_BUDGET = "budget_table";
-    public static final String COL_BUDGET_1 = "ID";
-    public static final String COL_BUDGET_2 = "NAME";
-    public static final String COL_BUDGET_3 = "AMOUNT";
-    public static final String COL_BUDGET_4 = "REMAINING";
+    public static final String TABLE_NAME = "budget_table";
+    public static final String COL_BUDGET_0 = "ID";
+    public static final String COL_BUDGET_1 = "NAME";
+    public static final String COL_BUDGET_2 = "AMOUNT";
+    public static final String COL_BUDGET_3 = "REMAINING";
 
     private static DBHelper_Budget sInstance;
 
     public DBHelper_Budget(Context context) {
         super(context, DATABASE_NAME_BUDGET, null, 1);
-
     }
 
     public static synchronized DBHelper_Budget getInstance(Context context) {
@@ -39,58 +36,89 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String sql = "create table " +TABLE_NAME_BUDGET+ "( "
-                +COL_BUDGET_1+" INTEGER PRIMARY KEY AUTOINCREMENT  , "
-                +COL_BUDGET_2+" TEXT , "
-                +COL_BUDGET_3+" REAL , "
-                +COL_BUDGET_4+" REAL ) ";
+        String sql = "create table " +TABLE_NAME+ "( "
+                + COL_BUDGET_0 +" INTEGER PRIMARY KEY AUTOINCREMENT  , "
+                + COL_BUDGET_1 +" TEXT , "
+                + COL_BUDGET_2 +" REAL , "
+                + COL_BUDGET_3 +" REAL ) ";
         db.execSQL(sql);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        String sql = "DROP TABLE IF EXISTS "+TABLE_NAME_BUDGET;
+        String sql = "DROP TABLE IF EXISTS "+TABLE_NAME;
         db.execSQL(sql);
         onCreate(db);
     }
 
     /**** EXEMPLE INSERT  *****/
-    public boolean insertDataName(String name, float amount, float remaining){
+    public long insertDataName(String name, float amount, float remaining){
         SQLiteDatabase db = this.getReadableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(COL_BUDGET_2,name);
-        contentValues.put(COL_BUDGET_3,amount);
-        contentValues.put(COL_BUDGET_4,remaining);
-        long result = db.insert(TABLE_NAME_BUDGET,null,contentValues);
-        if (result==-1) return false;
-        return true;
+        contentValues.put(COL_BUDGET_1,name);
+        contentValues.put(COL_BUDGET_2,amount);
+        contentValues.put(COL_BUDGET_3,remaining);
+        long id = db.insert(TABLE_NAME,null,contentValues);
+        return id;
     }
 
     public Cursor getAllData(){
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("select * from "+TABLE_NAME_BUDGET,null);
+        return db.rawQuery("select * from "+TABLE_NAME,null);
+    }
+
+    public String getAllStringData(){
+        /** Cursor is the pointer that traverse the data*/
+        Cursor result = this.getAllData();
+
+        /** Buffer will stock the data filtred from the DATABASE*/
+        StringBuffer buffer = new StringBuffer();
+        while (result.moveToNext()) {
+            buffer.append("ID: " + result.getString(0) + " - ");
+            buffer.append("NAME: " + result.getString(1) + " - ");
+            buffer.append("BUDGET: " + result.getString(2) + " - ");
+            buffer.append("REMAINING: " + result.getString(3) + "\n\n");
+        }
+        return buffer.toString();
+    }
+
+    public HashMap<Integer,String> getBudgetList(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor data = db.rawQuery("select "+ COL_BUDGET_0+", "+ COL_BUDGET_1 +" from "+TABLE_NAME,null);
+
+        HashMap<Integer,String> hm = new HashMap<Integer,String>();
+
+        while (data.moveToNext()) {
+            // ID & NAME
+            hm.put(data.getInt(0),data.getString(1));
+        }
+        return hm;
     }
 
     public Boolean updateData(String id,String name, float amount, float remaining ){
         SQLiteDatabase db = this.getReadableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(COL_BUDGET_1,id);
-        contentValues.put(COL_BUDGET_2,name);
-        contentValues.put(COL_BUDGET_3,amount);
-        contentValues.put(COL_BUDGET_4,remaining);
-        db.update(TABLE_NAME_BUDGET,contentValues,"ID = ?",new String[] {id});
+        contentValues.put(COL_BUDGET_0,id);
+        contentValues.put(COL_BUDGET_1,name);
+        contentValues.put(COL_BUDGET_2,amount);
+        contentValues.put(COL_BUDGET_3,remaining);
+        db.update(TABLE_NAME,contentValues,"ID = ?",new String[] {id});
         return true;
+    }
+
+    public void updateRemainingAmount(Integer ID, Float toSubstract){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("UPDATE "+TABLE_NAME+" SET "+COL_BUDGET_3+"="+COL_BUDGET_3+"-"+toSubstract+" WHERE id="+ID);
     }
 
     public Integer deleteData (String id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(TABLE_NAME_BUDGET, "ID = ?",new String[] {id});
+        return db.delete(TABLE_NAME, "ID = ?",new String[] {id});
     }
 
-    public boolean deleteDataBase (Context context) {
-        context.deleteDatabase(DATABASE_NAME_BUDGET);
-        return true;
+    public void deleteDataBase() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM "+TABLE_NAME); //delete all rows in a table
     }
-
 
 }

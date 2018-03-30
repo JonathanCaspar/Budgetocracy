@@ -8,6 +8,6 @@
         app:showAsAction="never" />
     <item
         android:id="@+id/searchMenuItem"
-        android:title="@android:string/search_go"
+        android:icon="@drawable/ic_search_24dp"
         app:showAsAction="ifRoom" />
 </menu>

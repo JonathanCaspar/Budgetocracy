@@ -14,4 +14,25 @@
     <string name="name">Nom</string>
     <string name="category">Catégorie</string>
     <string name="save">Sauvegarder</string>
+    <string name="pick_category">Sélectionnez une catégorie</string>
+    <string name="budget">Budget</string>
+    <string name="date">Date</string>
+    <string name="choix_unique_button">Une fois</string>
+    <string name="choix_recurrent_button">Récurrent</string>
+    <string name="every_week">Semaine</string>
+    <string name="every_month">Mois</string>
+    <string name="every_year">Année</string>
+    <string name="frequency">Fréquence</string>
+    <string name="repeatEvery">Répéter chaque :</string>
+    <string name="cancel">Annuler</string>
+    <string name="OK">OK</string>
+    <string name="empty_name_error">Vous devez saisir un nom.</string>
+    <string name="successful_expense_add">Dépense ajoutée avec succès !</string>
+    <string name="empty_category_error">Vous devez choisir une catégorie.</string>
+    <string name="empty_amount_error">Vous devez saisir un montant.</string>
+    <string name="failed_expense_add">Echec lors de l\'ajout de la dépense. Veuillez ré-essayer.</string>
+    <string name="empty_category_db">Vous n\'avez encore créé aucune catégorie.</string>
+    <string name="add">Créer une catégorie</string>
+    <string name="negative_amount_error">Veuillez saisir un montant valide positif.</string>
+    <string name="successful_category_add">Catégorie crée avec succès !</string>
 </resources>
