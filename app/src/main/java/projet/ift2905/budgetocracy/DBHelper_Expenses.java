@@ -70,6 +70,7 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
             buffer.append("AMOUNT: " + result.getString(3) + " - ");
             buffer.append("DATE: " + result.getString(4) + "\n\n");
         }
+        result.close();
         return buffer.toString();
     }
 

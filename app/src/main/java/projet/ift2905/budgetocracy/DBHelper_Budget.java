@@ -66,6 +66,7 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
             buffer.append("BUDGET: " + result.getString(2) + " - ");
             buffer.append("REMAINING: " + result.getString(3) + "\n\n");
         }
+        result.close();
         return buffer.toString();
     }
 
