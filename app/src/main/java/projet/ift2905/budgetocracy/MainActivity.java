@@ -33,6 +33,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import info.hoang8f.android.segmented.SegmentedGroup;
+
 
 enum typeSort{
     sortByName,
@@ -295,6 +297,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 searchManager.getSearchableInfo(getComponentName()));
 
         mSearchView.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+
+        SegmentedGroup mSegGroup = findViewById(R.id.segGroupResearch);
+        mSegGroup.setTintColor(getResources().getColor(R.color.colorPrimary));
 
         mSearchView.setQueryHint("Recherche");
         mEmptyView =  findViewById(R.id.txtName);

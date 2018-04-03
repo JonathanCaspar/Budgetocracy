@@ -43,8 +43,12 @@ public class CustomAdapter extends CursorAdapter{
         mAmount = (TextView) view.findViewById(R.id.txtAmount);
         mDate = (TextView) view.findViewById(R.id.txtDate);
 
+        DBHelper_Budget DB_Budget;
+        DB_Budget = new DBHelper_Budget(context);
+
+
         String title = cursor.getString(1);
-        String categorie = cursor.getString(2);
+        String categorie = DB_Budget.getStringBudgetWithID(cursor.getString(2));
         String amount = cursor.getString(3);
         String date = cursor.getString(4);
 
