@@ -12,7 +12,7 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME_BUDGET = "budget.db";
     public static final String TABLE_NAME = "budget_table";
-    public static final String COL_BUDGET_0 = "ID";
+    public static final String COL_BUDGET_0 = "_id";
     public static final String COL_BUDGET_1 = "NAME";
     public static final String COL_BUDGET_2 = "AMOUNT";
     public static final String COL_BUDGET_3 = "REMAINING";
