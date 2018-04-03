@@ -35,4 +35,11 @@
     <string name="add">Créer une catégorie</string>
     <string name="negative_amount_error">Veuillez saisir un montant valide positif.</string>
     <string name="successful_category_add">Catégorie crée avec succès !</string>
+
+    <string name="research">Recherche</string>
+    <string name="research_SortDate">Date</string>
+    <string name="research_SortAmount">Montant</string>
+    <string name="research_SortName">Nom</string>
+
+
 </resources>

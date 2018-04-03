@@ -10,7 +10,7 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME_EXPENSES = "expenses.db";
     public static final String TABLE_NAME = "expenses_table";
-    public static final String COL_EXPENSES_1 = "ID";
+    public static final String COL_EXPENSES_1 = "_id";
     public static final String COL_EXPENSES_2 = "NAME";
     public static final String COL_EXPENSES_3 = "CATEGORY_ID";
     public static final String COL_EXPENSES_4 = "AMOUNT";
@@ -24,11 +24,11 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String sql = "CREATE TABLE " + TABLE_NAME + " ("
-                +COL_EXPENSES_1+" INTEGER PRIMARY KEY AUTOINCREMENT,"
-                +COL_EXPENSES_2+" TEXT,"
-                +COL_EXPENSES_3+" INTEGER,"
-                +COL_EXPENSES_4+" FLOAT,"
-                +COL_EXPENSES_5+" TEXT) ";
+                +COL_EXPENSES_1+" INTEGER PRIMARY KEY AUTOINCREMENT  , "
+                +COL_EXPENSES_2+" TEXT , "
+                +COL_EXPENSES_3+" INTEGER , "
+                +COL_EXPENSES_4+" FLOAT , "
+                +COL_EXPENSES_5+" TEXT ) ";
         db.execSQL(sql);
     }
 
@@ -70,7 +70,6 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
             buffer.append("AMOUNT: " + result.getString(3) + " - ");
             buffer.append("DATE: " + result.getString(4) + "\n\n");
         }
-        result.close();
         return buffer.toString();
     }
 
@@ -95,5 +94,76 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DELETE FROM "+ TABLE_NAME); //delete all rows in a table
     }
+
+
+
+
+
+    public Cursor getExpenseListByKeyword (String search, EnumSort sort){
+        //Open connection to read only
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery="";
+        switch (sort.getSort()){
+            case sortByDate:
+                selectQuery =  "SELECT  rowid as " +
+                        DBHelper_Expenses.COL_EXPENSES_1 + "," +
+                        DBHelper_Expenses.COL_EXPENSES_2 + "," +
+                        DBHelper_Expenses.COL_EXPENSES_3 + "," +
+                        DBHelper_Expenses.COL_EXPENSES_4 + "," +
+                        DBHelper_Expenses.COL_EXPENSES_5 +
+                        " FROM " + DBHelper_Expenses.TABLE_NAME+
+                        " WHERE " +  DBHelper_Expenses.COL_EXPENSES_2 + "  LIKE  '%" +search + "%' "+
+                        " ORDER BY " + DBHelper_Expenses.COL_EXPENSES_5
+                        ;
+
+                break;
+            case sortByAmount:
+                selectQuery =  "SELECT  rowid as " +
+                        DBHelper_Expenses.COL_EXPENSES_1 + "," +
+                        DBHelper_Expenses.COL_EXPENSES_2 + "," +
+                        DBHelper_Expenses.COL_EXPENSES_3 + "," +
+                        DBHelper_Expenses.COL_EXPENSES_4 + "," +
+                        DBHelper_Expenses.COL_EXPENSES_5 +
+                        " FROM " + DBHelper_Expenses.TABLE_NAME+
+                        " WHERE " +  DBHelper_Expenses.COL_EXPENSES_2 + "  LIKE  '%" +search + "%' "+
+                        " ORDER BY " + DBHelper_Expenses.COL_EXPENSES_4
+                        ;
+
+                break;
+
+            case sortByName:
+                selectQuery =  "SELECT  rowid as " +
+                        DBHelper_Expenses.COL_EXPENSES_1 + "," +
+                        DBHelper_Expenses.COL_EXPENSES_2 + "," +
+                        DBHelper_Expenses.COL_EXPENSES_3 + "," +
+                        DBHelper_Expenses.COL_EXPENSES_4 + "," +
+                        DBHelper_Expenses.COL_EXPENSES_5 +
+                        " FROM " + DBHelper_Expenses.TABLE_NAME+
+                        " WHERE " +  DBHelper_Expenses.COL_EXPENSES_2 + "  LIKE  '%" +search + "%' "+
+                        " ORDER BY " + DBHelper_Expenses.COL_EXPENSES_2
+                        ;
+
+                break;
+
+            default :
+                break;
+
+
+
+        }
+
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+
+        if (cursor == null) {
+            return null;
+        } else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+        }
+        return cursor;
+    }
+
+
 
 }
