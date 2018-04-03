@@ -12,13 +12,26 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME_BUDGET = "budget.db";
     public static final String TABLE_NAME = "budget_table";
-    public static final String COL_BUDGET_0 = "ID";
+    public static final String COL_BUDGET_0 = "_id";
     public static final String COL_BUDGET_1 = "NAME";
     public static final String COL_BUDGET_2 = "AMOUNT";
     public static final String COL_BUDGET_3 = "REMAINING";
 
+    private static DBHelper_Budget sInstance;
+
     public DBHelper_Budget(Context context) {
         super(context, DATABASE_NAME_BUDGET, null, 1);
+    }
+
+    public static synchronized DBHelper_Budget getInstance(Context context) {
+
+        // Use the application context, which will ensure that you
+        // don't accidentally leak an Activity's context.
+        // See this article for more information: http://bit.ly/6LRzfx
+        if (sInstance == null) {
+            sInstance = new DBHelper_Budget(context.getApplicationContext());
+        }
+        return sInstance;
     }
 
     @Override
@@ -66,6 +79,7 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
             buffer.append("BUDGET: " + result.getString(2) + " - ");
             buffer.append("REMAINING: " + result.getString(3) + "\n\n");
         }
+        result.close();
         return buffer.toString();
     }
 

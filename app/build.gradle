@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId 'projet.ift2905.budgetocracy'
-        minSdkVersion 22
+        minSdkVersion 21
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -34,6 +34,7 @@ dependencies {
     compile 'com.google.apis:google-api-services-vision:v1-rev357-1.22.0'
     compile 'com.google.code.findbugs:jsr305:2.0.1'
     compile 'commons-io:commons-io:2.5'
-    compile "com.android.support:appcompat-v7:27.1.0"
     compile 'info.hoang8f:android-segmented:1.0.6'
+
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
 }

@@ -1,33 +1,93 @@
 package projet.ift2905.budgetocracy;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.app.DownloadManager;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.view.View;
+import android.widget.Adapter;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.common.eventbus.EventBus;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
+import org.w3c.dom.Text;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
+
+enum typeSort{
+    sortByName,
+    sortByDate,
+    sortByAmount;
+
+}
+
+class EnumSort{
+    typeSort sort;
+
+    public EnumSort(typeSort sort){
+        this.sort=sort;
+    }
+
+    public void changeSort(typeSort newSort){
+        this.sort=newSort;
+    }
+
+    public typeSort getSort(){
+        return sort;
+    }
+
+}
+
+
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    //ADD==============
+    ListView mListView;
+    TextView mEmptyView;
+
+    Cursor cursor;
+    private CustomAdapter customAdapter;
 
     // INTERFACE
     private BottomNavigationViewEx mBottomBar; // Menu de l'écran principal
@@ -37,9 +97,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private DBHelper_Budget DB_Budget;
 
     final String[] PERMISSIONS = {Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.INTERNET};
-
+                                  Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                  Manifest.permission.INTERNET};
     final int PERMISSION_ALL = 101;
     final int REQUEST_IMAGE_CAPTURE = 102;
     final int REQUEST_EXPENSE_DATA = 103;
@@ -84,13 +143,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mBottomBar.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.menu_scan:
+                switch(item.getItemId()){
+                    case R.id.menu_scan :
                         // Si Permission accordée:
-                        if (hasPermissions(getApplicationContext(), PERMISSIONS)) {
+                        if(hasPermissions(getApplicationContext(), PERMISSIONS)){
                             Intent takePhotoIntent = new Intent(MainActivity.this, CameraActivity.class);
                             // Activité Caméra lancée dans l'attente d'une réponse (image)
-                            startActivityForResult(takePhotoIntent, REQUEST_IMAGE_CAPTURE);
+                            startActivityForResult(takePhotoIntent ,REQUEST_IMAGE_CAPTURE);
                             return true;
                         } else {
                             // Sinon: les demander
@@ -133,7 +192,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         switch (requestCode) {
             case REQUEST_IMAGE_CAPTURE:
-                if (resultCode == RESULT_OK) {
+                if(resultCode == RESULT_OK) {
                     String photoBase64 = data.getStringExtra("photoBase64");
                     Intent addExpenseWithData = new Intent(MainActivity.this, NewExpensesActivity.class);
                     addExpenseWithData.putExtra("requestDataToAPI", true);
@@ -198,15 +257,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     * Partie pas importante : gère l'affichage du Drawer (menu latéral)
-     **/
+     *  Partie pas importante : gère l'affichage du Drawer (menu latéral)
+            **/
+
     // Affiche le mois courant dans le Toolbar
-    public String getCurrentMonth() {
+    public String getCurrentMonth(){
         DateFormat dateFormat = new SimpleDateFormat("MM");
         Date date = new Date();
         String mois = dateFormat.format(date);
 
-        switch (mois) {
+        switch(mois) {
             case "01":
                 return "Janvier";
             case "02":
@@ -231,7 +291,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 return "Novembre";
             case "12":
                 return "Décembre";
-            default:
+            default :
                 return "Cinglinglin";
         }
     }
@@ -246,18 +306,167 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+
+
+        //SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        MenuItem mSearch = menu.findItem(R.id.search);
+
+        SearchView mSearchView = (SearchView) mSearch.getActionView();
+        //mSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+
+        mSearchView.setQueryHint("Search");
+        mEmptyView =  findViewById(R.id.txtName);
+        mListView = findViewById(R.id.lstExpenses);
+
+
+        //cursor = DB_Expenses.getAllData();
+        customAdapter = new CustomAdapter(this,cursor);
+
+        mListView.setAdapter((ListAdapter) customAdapter);
+
+
+        mListView.setEmptyView(mEmptyView);
+
+        mListView.setVisibility(View.GONE);
+
+        final Button mButtonDate =  findViewById(R.id.buttonSortDate);
+        final Button mButtonAmount = findViewById(R.id.buttonSortAmount);
+        final Button mButtonName = findViewById(R.id.buttonSortName);
+
+
+        mButtonDate.setVisibility(View.GONE);
+        mButtonAmount.setVisibility(View.GONE);
+        mButtonName.setVisibility(View.GONE);
+
+
+        final EnumSort mSort = new EnumSort(typeSort.sortByName);
+
+
+
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(final String query) {
+                mListView.setVisibility(View.VISIBLE);
+                mButtonDate.setVisibility(View.VISIBLE);
+                mButtonAmount.setVisibility(View.VISIBLE);
+                mButtonName.setVisibility(View.VISIBLE);
+
+                cursor = DB_Expenses.getExpenseListByKeyword(query,mSort);
+                if (cursor==null){
+                    Toast.makeText(MainActivity.this,"Pas de dépense trouvée!",Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(MainActivity.this, cursor.getCount() + " dépenses trouvée.s!",Toast.LENGTH_LONG).show();
+                }
+                customAdapter.changeCursor(cursor);
+
+                mButtonAmount.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mSort.changeSort(typeSort.sortByAmount);
+                        cursor= DB_Expenses.getExpenseListByKeyword(query,mSort);
+                        customAdapter.changeCursor(cursor);
+                    }
+                });
+
+                mButtonDate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mSort.changeSort(typeSort.sortByDate);
+                        cursor= DB_Expenses.getExpenseListByKeyword(query,mSort);
+                        customAdapter.changeCursor(cursor);
+                    }
+                });
+
+                mButtonName.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mSort.changeSort(typeSort.sortByName);
+                        cursor= DB_Expenses.getExpenseListByKeyword(query,mSort);
+                        customAdapter.changeCursor(cursor);
+                    }
+                });
+
+
+
+
+
+
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(final String newText) {
+                mListView.setVisibility(View.VISIBLE);
+                mButtonDate.setVisibility(View.VISIBLE);
+                mButtonAmount.setVisibility(View.VISIBLE);
+                mButtonName.setVisibility(View.VISIBLE);
+
+                cursor = DB_Expenses.getExpenseListByKeyword(newText,mSort);
+                customAdapter.changeCursor(cursor);
+                if (cursor !=null){
+                    customAdapter.changeCursor(cursor);
+                }
+
+                mButtonAmount.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mSort.changeSort(typeSort.sortByAmount);
+                        cursor= DB_Expenses.getExpenseListByKeyword(newText,mSort);
+                        customAdapter.changeCursor(cursor);
+                    }
+                });
+
+                mButtonDate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mSort.changeSort(typeSort.sortByDate);
+                        cursor= DB_Expenses.getExpenseListByKeyword(newText,mSort);
+                        customAdapter.changeCursor(cursor);
+                    }
+                });
+
+                mButtonName.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mSort.changeSort(typeSort.sortByName);
+                        cursor= DB_Expenses.getExpenseListByKeyword(newText,mSort);
+                        customAdapter.changeCursor(cursor);
+                    }
+                });
+
+
+
+
+                return false;
+            }
+        });
+        // Quand on quitte la recherche on fait disparaitre le ListView
+        mSearchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                mListView.setVisibility(View.GONE);
+                mButtonDate.setVisibility(View.GONE);
+                mButtonAmount.setVisibility(View.GONE);
+                mButtonName.setVisibility(View.GONE);
+                return false;
+            }
+        });
+
+
         return true;
     }
 
+    /*
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        switch (id) {
+        switch (id){
             case R.id.action_settings:
                 return true;
 
@@ -267,6 +476,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return super.onOptionsItemSelected(item);
     }
 
+*/
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
