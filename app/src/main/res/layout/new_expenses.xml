@@ -11,7 +11,7 @@
         android:background="?attr/colorPrimary"
         app:popupTheme="@style/AppTheme.PopupOverlay"
         app:theme="@style/AppTheme.AppBarOverlay"
-        app:titleTextColor="@color/colorWhite" />
+        app:titleTextColor="@color/colorIcons" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -138,11 +138,11 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
-        android:background="@color/colorPrimaryDark"
+        android:background="@color/colorPrimary"
         android:backgroundTint="@color/colorPrimary"
         android:elevation="0dp"
         android:text="@string/save"
         android:textAppearance="@style/TextAppearance.AppCompat.Button"
-        android:textColor="@color/colorWhite" />
+        android:textColor="@color/colorIcons" />
 
 </RelativeLayout>

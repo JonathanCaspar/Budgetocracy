@@ -87,6 +87,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         DB_Expenses = new DBHelper_Expenses(this);
         DB_Budget = new DBHelper_Budget(this);
 
+        View view = this.getWindow().getDecorView();
+        view.setBackgroundColor(getResources().getColor(R.color.colorMainBackground));
+
         showDBexpense = findViewById(R.id.displayDB_expense);
         showDBexpense.setOnClickListener(new View.OnClickListener() {
             @Override

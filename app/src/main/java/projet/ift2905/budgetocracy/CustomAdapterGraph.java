@@ -51,7 +51,7 @@ public class CustomAdapterGraph extends CursorAdapter {
         pieChart.setDrawHoleEnabled(true);
         pieChart.setHoleColor(Color.WHITE);
         pieChart.setHoleRadius(75.f);
-        pieChart.setTransparentCircleRadius(85f);
+        pieChart.setTransparentCircleRadius(0f);
 
         pieChart.setDrawCenterText(true);
         Legend l = pieChart.getLegend();
@@ -75,8 +75,8 @@ public class CustomAdapterGraph extends CursorAdapter {
 
         // ADD COLORS
         ArrayList colors = new ArrayList();
-        colors.add(Color.WHITE);
-        colors.add(0xFF67DFF2);
+        colors.add(0xFF10B073); // VERT
+        colors.add(Color.RED); // ROUGE
         dataSet.setColors(colors);
 
         PieData data = new PieData((dataSet));

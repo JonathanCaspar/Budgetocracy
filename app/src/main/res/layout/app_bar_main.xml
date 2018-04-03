@@ -33,10 +33,10 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
         android:layout_gravity="bottom"
-        android:background="@color/colorPrimaryDark"
+        android:background="@color/colorPrimary"
         android:clickable="true"
         android:fadeScrollbars="false"
-        app:itemIconTint="@color/colorWhite"
+        app:itemIconTint="@color/colorIcons"
         app:layout_constraintBottom_toBottomOf="@+id/include"
         app:menu="@menu/navigation_bar_menu"/>
 
