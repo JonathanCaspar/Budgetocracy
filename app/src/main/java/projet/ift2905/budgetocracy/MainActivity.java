@@ -2,10 +2,6 @@ package projet.ift2905.budgetocracy;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.DownloadManager;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -17,42 +13,24 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.view.View;
-import android.widget.Adapter;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.common.eventbus.EventBus;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
-import org.w3c.dom.Text;
-
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 
 
@@ -60,7 +38,6 @@ enum typeSort{
     sortByName,
     sortByDate,
     sortByAmount;
-
 }
 
 class EnumSort{
@@ -79,7 +56,6 @@ class EnumSort{
     }
 
 }
-
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     //ADD==============
@@ -310,14 +286,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
 
+        // Associate searchable configuration with the SearchView
+        SearchManager searchManager =
+                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchView mSearchView =
+                (SearchView) menu.findItem(R.id.search).getActionView();
+        mSearchView.setSearchableInfo(
+                searchManager.getSearchableInfo(getComponentName()));
 
-        //SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        MenuItem mSearch = menu.findItem(R.id.search);
+        mSearchView.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
 
-        SearchView mSearchView = (SearchView) mSearch.getActionView();
-        //mSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
-
-        mSearchView.setQueryHint("Search");
+        mSearchView.setQueryHint("Recherche");
         mEmptyView =  findViewById(R.id.txtName);
         mListView = findViewById(R.id.lstExpenses);
 
@@ -344,16 +323,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         final EnumSort mSort = new EnumSort(typeSort.sortByName);
 
-
-
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(final String query) {
-                mListView.setVisibility(View.VISIBLE);
-                mButtonDate.setVisibility(View.VISIBLE);
-                mButtonAmount.setVisibility(View.VISIBLE);
-                mButtonName.setVisibility(View.VISIBLE);
-
                 cursor = DB_Expenses.getExpenseListByKeyword(query,mSort);
                 if (cursor==null){
                     Toast.makeText(MainActivity.this,"Pas de dépense trouvée!",Toast.LENGTH_LONG).show();
@@ -388,12 +360,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         customAdapter.changeCursor(cursor);
                     }
                 });
-
-
-
-
-
-
                 return false;
             }
 
@@ -403,6 +369,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mButtonDate.setVisibility(View.VISIBLE);
                 mButtonAmount.setVisibility(View.VISIBLE);
                 mButtonName.setVisibility(View.VISIBLE);
+
+                mBottomBar.setVisibility(View.GONE);
+                showDBbudget.setVisibility(View.GONE);
+                showDBexpense.setVisibility(View.GONE);
 
                 cursor = DB_Expenses.getExpenseListByKeyword(newText,mSort);
                 customAdapter.changeCursor(cursor);
@@ -436,10 +406,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         customAdapter.changeCursor(cursor);
                     }
                 });
-
-
-
-
                 return false;
             }
         });
@@ -451,6 +417,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mButtonDate.setVisibility(View.GONE);
                 mButtonAmount.setVisibility(View.GONE);
                 mButtonName.setVisibility(View.GONE);
+
+                // Réactivation ecran principal
+                mBottomBar.setVisibility(View.VISIBLE);
+                showDBbudget.setVisibility(View.VISIBLE);
+                showDBexpense.setVisibility(View.VISIBLE);
                 return false;
             }
         });

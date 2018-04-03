@@ -109,7 +109,7 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
 
     public void updateRemainingAmount(Integer ID, Float toSubstract){
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("UPDATE "+TABLE_NAME+" SET "+COL_BUDGET_3+"="+COL_BUDGET_3+"-"+toSubstract+" WHERE id="+ID);
+        db.execSQL("UPDATE "+TABLE_NAME+" SET "+COL_BUDGET_3+"="+COL_BUDGET_3+"-"+toSubstract+" WHERE _id="+ID);
     }
 
     public Integer deleteData (String id) {
