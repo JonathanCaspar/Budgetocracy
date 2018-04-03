@@ -1,9 +1,16 @@
 package projet.ift2905.budgetocracy;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.app.DownloadManager;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -11,24 +18,99 @@ import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Adapter;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.common.eventbus.EventBus;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
+
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
+
+enum typeSort{
+    sortByName,
+    sortByDate,
+    sortByAmount;
+
+}
+
+class EnumSort{
+    typeSort sort;
+
+    public EnumSort(typeSort sort){
+        this.sort=sort;
+    }
+
+    public void changeSort(typeSort newSort){
+        this.sort=newSort;
+    }
+
+    public typeSort getSort(){
+        return sort;
+    }
+
+}
+
+
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    /****************
+     * DATA BASE TEST
+     ****************/
+
+    DBHelper_Expenses DB_Expenses;
+    DBHelper_Budget DB_Budget;
+    public void showMessage (String title, String message){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.show();
+    }
+
+    /****************
+     * END OF TEST
+     ****************/
+
+
+    //ADD==============
+    ListView mListView;
+    TextView mEmptyView;
+
+
+    Cursor cursor;
+    private CustomAdapter customAdapter;
+
+
+    // ==============
+
 
     // INTERFACE
     private BottomNavigationViewEx mBottomBar; // Menu de l'écran principal
@@ -36,11 +118,61 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     final String[] PERMISSIONS = {Manifest.permission.CAMERA,
                                   Manifest.permission.WRITE_EXTERNAL_STORAGE,
                                   Manifest.permission.INTERNET};
+
     final int PERMISSION_ALL = 101;
     final int REQUEST_IMAGE_CAPTURE = 102;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        /****************
+         * DATA BASE TEST
+         ****************/
+
+
+
+        //log.d("CREATION","message");
+        DB_Expenses = new DBHelper_Expenses(this);
+        DB_Expenses.deleteDataBase();
+        DB_Expenses.insertDataName("fevrier",1,300.f,"3 Septembre");
+        //DB_Expenses.insertDataName("fevrier",2,20.f,"3 Septembre");
+        DB_Expenses.insertDataName("mars",3,30.f,"3 Septembre");
+        DB_Expenses.insertDataName("arvil",4,40.f,"3 Septembre");
+        DB_Expenses.insertDataName("mai",5,50.f,"3 Septembre");
+        DB_Expenses.insertDataName("juin",6,66.f,"3 Septembre");
+        DB_Expenses.insertDataName("aout",1,77.f,"3 Septembre");
+
+        //DB_Budget = new DBHelper_Budget(this);
+        //DB_Budget.insertDataName("jzkdjdklzdjzd",300.f,5);
+
+
+
+
+
+        /** Cursor is the pointer that traverse the data*/
+        //cursor = DB_Expenses.getAllData();
+
+
+
+        /** Buffer will stock the data filtred from the DATABASE*/
+             /*
+        StringBuffer buffer = new StringBuffer();
+        while (cursor.moveToNext()){
+            buffer.append("ID :"+cursor.getString(0)+"\n");
+            buffer.append("NAME :"+cursor.getString(1)+"\n");
+            buffer.append("CATEGORIE :"+cursor.getString(2)+"\n");
+            buffer.append("AMOUNT :"+cursor.getString(3)+"\n");
+            buffer.append("DATE :"+cursor.getString(4)+"\n");
+        }
+        //showMessage("Data",buffer.toString());
+
+
+        */
+
+        /****************
+         * END OF TEST
+         ****************/
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -56,6 +188,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mBottomBar.enableAnimation(false);
         mBottomBar.enableShiftingMode(false);
         mBottomBar.setTextVisibility(false);
+
 
         // Liens d'écoute sur la barre de navigation
         mBottomBar.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -101,6 +234,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+
+
+
+
     }
 
     // Récupère les données attendues d'une activité selon le "requestCode"
@@ -222,30 +360,183 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
+
+
+        //SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        MenuItem mSearch = menu.findItem(R.id.search);
+
+        SearchView mSearchView = (SearchView) mSearch.getActionView();
+        //mSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+
+        mSearchView.setQueryHint("Search");
+        mEmptyView =  findViewById(R.id.txtName);
+        mListView = findViewById(R.id.lstExpenses);
+
+
+        //cursor = DB_Expenses.getAllData();
+        customAdapter = new CustomAdapter(this,cursor);
+
+        mListView.setAdapter((ListAdapter) customAdapter);
+
+
+        mListView.setEmptyView(mEmptyView);
+
+        mListView.setVisibility(View.GONE);
+
+        final Button mButtonDate =  findViewById(R.id.buttonSortDate);
+        final Button mButtonAmount = findViewById(R.id.buttonSortAmount);
+        final Button mButtonName = findViewById(R.id.buttonSortName);
+
+
+        mButtonDate.setVisibility(View.GONE);
+        mButtonAmount.setVisibility(View.GONE);
+        mButtonName.setVisibility(View.GONE);
+
+
+        final EnumSort mSort = new EnumSort(typeSort.sortByName);
+
+
+
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(final String query) {
+                mListView.setVisibility(View.VISIBLE);
+                mButtonDate.setVisibility(View.VISIBLE);
+                mButtonAmount.setVisibility(View.VISIBLE);
+                mButtonName.setVisibility(View.VISIBLE);
+
+                cursor = DB_Expenses.getExpenseListByKeyword(query,mSort);
+                if (cursor==null){
+                    Toast.makeText(MainActivity.this,"Pas de dépense trouvée!",Toast.LENGTH_LONG).show();
+                }else{
+                    Toast.makeText(MainActivity.this, cursor.getCount() + " dépenses trouvée.s!",Toast.LENGTH_LONG).show();
+                }
+                customAdapter.changeCursor(cursor);
+
+                mButtonAmount.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mSort.changeSort(typeSort.sortByAmount);
+                        cursor= DB_Expenses.getExpenseListByKeyword(query,mSort);
+                        customAdapter.changeCursor(cursor);
+                    }
+                });
+
+                mButtonDate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mSort.changeSort(typeSort.sortByDate);
+                        cursor= DB_Expenses.getExpenseListByKeyword(query,mSort);
+                        customAdapter.changeCursor(cursor);
+                    }
+                });
+
+                mButtonName.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mSort.changeSort(typeSort.sortByName);
+                        cursor= DB_Expenses.getExpenseListByKeyword(query,mSort);
+                        customAdapter.changeCursor(cursor);
+                    }
+                });
+
+
+
+
+
+
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(final String newText) {
+                mListView.setVisibility(View.VISIBLE);
+                mButtonDate.setVisibility(View.VISIBLE);
+                mButtonAmount.setVisibility(View.VISIBLE);
+                mButtonName.setVisibility(View.VISIBLE);
+
+                cursor = DB_Expenses.getExpenseListByKeyword(newText,mSort);
+                customAdapter.changeCursor(cursor);
+                if (cursor !=null){
+                    customAdapter.changeCursor(cursor);
+                }
+
+                mButtonAmount.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mSort.changeSort(typeSort.sortByAmount);
+                        cursor= DB_Expenses.getExpenseListByKeyword(newText,mSort);
+                        customAdapter.changeCursor(cursor);
+                    }
+                });
+
+                mButtonDate.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mSort.changeSort(typeSort.sortByDate);
+                        cursor= DB_Expenses.getExpenseListByKeyword(newText,mSort);
+                        customAdapter.changeCursor(cursor);
+                    }
+                });
+
+                mButtonName.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mSort.changeSort(typeSort.sortByName);
+                        cursor= DB_Expenses.getExpenseListByKeyword(newText,mSort);
+                        customAdapter.changeCursor(cursor);
+                    }
+                });
+
+
+
+
+                return false;
+            }
+        });
+        // Quand on quitte la recherche on fait disparaitre le ListView
+        mSearchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                mListView.setVisibility(View.GONE);
+                mButtonDate.setVisibility(View.GONE);
+                mButtonAmount.setVisibility(View.GONE);
+                mButtonName.setVisibility(View.GONE);
+                return false;
+            }
+        });
+
+
         return true;
     }
 
+    /*
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        switch (id){
+        switch (id) {
             case R.id.action_settings:
                 return true;
 
-            case R.id.searchMenuItem:
-                startActivity(new Intent(MainActivity.this, ResearchActivity.class));
-            }
+            case R.id.search:
+
+                return true;
+
+        }
         return super.onOptionsItemSelected(item);
     }
 
+*/
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
