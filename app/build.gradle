@@ -29,12 +29,12 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    compile 'com.github.ittianyu:BottomNavigationViewEx:1.2.4'
-    compile 'com.google.api-client:google-api-client-android:1.22.0'
-    compile 'com.google.apis:google-api-services-vision:v1-rev357-1.22.0'
-    compile 'com.google.code.findbugs:jsr305:2.0.1'
-    compile 'commons-io:commons-io:2.5'
-    compile 'info.hoang8f:android-segmented:1.0.6'
+    implementation 'com.github.ittianyu:BottomNavigationViewEx:1.2.4'
+    implementation 'com.google.api-client:google-api-client-android:1.22.0'
+    implementation 'com.google.apis:google-api-services-vision:v1-rev357-1.22.0'
+    implementation 'com.google.code.findbugs:jsr305:2.0.1'
+    implementation 'commons-io:commons-io:2.5'
+    implementation 'info.hoang8f:android-segmented:1.0.6'
 
     implementation 'com.github.PhilJay:MPAndroidChart:v3.0.3'
 }
