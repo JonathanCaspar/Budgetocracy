@@ -81,6 +81,9 @@ public class NewExpensesActivity extends AppCompatActivity {
         recurrenceButton = findViewById(R.id.choix_recurrent_button);
         expenseAddButton = findViewById(R.id.addExpense);
 
+        // Changement de couleur choixRecurrence
+        choixRecurrence.setTintColor(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorIcons));
+
         // Ajout de données via un scan ?
         if (getIntent().getBooleanExtra("requestDataToAPI", false)) { // Scan effectué
             String[] photoBase64 = {getIntent().getStringExtra("photoBase64")};
@@ -153,6 +156,7 @@ public class NewExpensesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(NewExpensesActivity.this);
+
                 builder.setTitle(R.string.frequency);
                 builder.setIcon(R.drawable.ic_timer_24dp);
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {

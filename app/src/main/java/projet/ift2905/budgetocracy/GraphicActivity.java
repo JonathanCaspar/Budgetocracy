@@ -35,6 +35,8 @@ import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 import java.util.ArrayList;
 import java.util.Random;
 
+import info.hoang8f.android.segmented.SegmentedGroup;
+
 import static com.github.mikephil.charting.utils.ColorTemplate.*;
 
 public class GraphicActivity extends AppCompatActivity {
@@ -55,6 +57,9 @@ public class GraphicActivity extends AppCompatActivity {
 
         pieChart =  findViewById(R.id.piechart_1);
         //ListView mListView = findViewById(R.id.l_view_graph);
+        SegmentedGroup choixGraphe = findViewById(R.id.choixGraphe);
+        choixGraphe.setTintColor(getResources().getColor(R.color.colorIcons), getResources().getColor(R.color.colorPrimary));
+
         GridView mGridView = findViewById(R.id.gridview_1);
         DBHelper_Budget DB_Budget = new DBHelper_Budget(this);
         DB_Budget.deleteDataBase();

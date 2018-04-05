@@ -21,7 +21,7 @@
         android:background="?attr/colorPrimary"
         app:theme="@style/AppTheme.AppBarOverlay"
         app:popupTheme="@style/AppTheme.PopupOverlay"
-        app:titleTextColor="@color/colorWhite"/>
+        app:titleTextColor="@color/colorIcons"/>
 
 
     <GridView
@@ -36,31 +36,31 @@
         android:id="@+id/choixGraphe"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="right"
         android:layout_alignParentRight="true"
+        android:layout_gravity="right"
         android:layout_marginTop="10dp"
         android:orientation="horizontal"
-        segmentedgroup:sc_border_width="2dp"
-        segmentedgroup:sc_corner_radius="10dp">
+        android:paddingRight="13dp"
+        segmentedgroup:sc_corner_radius="1dp">
 
         <RadioButton
             android:id="@+id/choix_graph_1"
             style="@style/RadioButton"
-            android:layout_width="wrap_content"
+            android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:text="D" />
 
         <RadioButton
             android:id="@+id/choix_graph_2"
             style="@style/RadioButton"
-            android:layout_width="wrap_content"
+            android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:text="B" />
 
         <RadioButton
             android:id="@+id/choix_graph_3"
             style="@style/RadioButton"
-            android:layout_width="wrap_content"
+            android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:text="C" />
 
