@@ -1,18 +1,21 @@
 package projet.ift2905.budgetocracy;
 
 import android.Manifest;
+import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -21,6 +24,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SearchView;
@@ -108,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Toolbar (en haut)
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(getCurrentMonth());
+        getSupportActionBar().setTitle(getCurrentDate());
 
         // Barre de navigation (en bas)
         mBottomBar = findViewById(R.id.menuBar);
@@ -239,39 +245,43 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      *  Partie pas importante : gère l'affichage du Drawer (menu latéral)
             **/
 
-    // Affiche le mois courant dans le Toolbar
-    public String getCurrentMonth(){
-        DateFormat dateFormat = new SimpleDateFormat("MM");
+    // Affiche la date courante dans le Toolbar
+    public static String getCurrentDate(){
+        DateFormat dateFormat = new SimpleDateFormat("d/MM/yyyy");
         Date date = new Date();
-        String mois = dateFormat.format(date);
+        String[] dateStr = dateFormat.format(date).split("/");
 
-        switch(mois) {
+        return dateStr[0] + getMonthFromNb(dateStr[1]) + dateStr[2];
+    }
+
+    public static String getMonthFromNb(String nb){
+        switch(nb) {
             case "01":
-                return "Janvier";
+                return" Janvier ";
             case "02":
-                return "Février";
+                return" Février ";
             case "03":
-                return "Mars";
+                return" Mars ";
             case "04":
-                return "Avril";
+                return" Avril ";
             case "05":
-                return "Mai";
+                return" Mai ";
             case "06":
-                return "Juin";
+                return" Juin ";
             case "07":
-                return "Juillet";
+                return" Juillet ";
             case "08":
-                return "Août";
+                return" Août ";
             case "09":
-                return "Septembre";
+                return" Septembre ";
             case "10":
-                return "Octobre";
+                return" Octobre ";
             case "11":
-                return "Novembre";
+                return" Novembre ";
             case "12":
-                return "Décembre";
-            default :
-                return "Cinglinglin";
+                return" Décembre ";
+            default:
+                return" Cinglinglin ";
         }
     }
 
@@ -290,16 +300,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getMenuInflater().inflate(R.menu.main, menu);
 
         // Associate searchable configuration with the SearchView
-        SearchManager searchManager =
-                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView mSearchView =
-                (SearchView) menu.findItem(R.id.search).getActionView();
-        mSearchView.setSearchableInfo(
-                searchManager.getSearchableInfo(getComponentName()));
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        MenuItem menuItem = menu.findItem(R.id.search);
 
-        mSearchView.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+        SearchView mSearchView = (SearchView) menuItem.getActionView();
+        mSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 
-        mSearchView.setQueryHint("Recherche");
+        // Retire la barre en dessous de la recherche
+        int searchPlateId = mSearchView.getContext().getResources()
+                .getIdentifier("android:id/search_plate", null, null);
+        View searchPlateView = mSearchView.findViewById(searchPlateId);
+
+        if (searchPlateView != null) {
+            searchPlateView.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+        }
+
+        mSearchView.setQueryHint(getResources().getString(R.string.research));
         mEmptyView =  findViewById(R.id.txtName);
         mListView = findViewById(R.id.lstExpenses);
 

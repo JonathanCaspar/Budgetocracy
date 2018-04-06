@@ -30,16 +30,22 @@ import com.google.api.services.vision.v1.VisionRequestInitializer;
 import com.google.api.services.vision.v1.model.AnnotateImageRequest;
 import com.google.api.services.vision.v1.model.BatchAnnotateImagesRequest;
 import com.google.api.services.vision.v1.model.BatchAnnotateImagesResponse;
+import com.google.api.services.vision.v1.model.EntityAnnotation;
 import com.google.api.services.vision.v1.model.Feature;
 import com.google.api.services.vision.v1.model.Image;
 import com.google.api.services.vision.v1.model.TextAnnotation;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import info.hoang8f.android.segmented.SegmentedGroup;
 
@@ -145,7 +151,7 @@ public class NewExpensesActivity extends AppCompatActivity {
                 alertDialog.getButton(alertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorPrimary));
             }
         });
-        expenseDate.getEditText().setText(getCurrentDate());
+        expenseDate.getEditText().setText(MainActivity.getCurrentDate());
 
         // Choix de la fréquence de période
         recurrenceButton.setOnClickListener(new View.OnClickListener() {
@@ -354,25 +360,39 @@ public class NewExpensesActivity extends AppCompatActivity {
         return allGood;
     }
 
+    public void updateDate(String date){
+        expenseDate.getEditText().setText(date);
+    }
 
     public void showDatePickerDialog(View v) {
         DialogFragment fragment = new DatePickerFragment();
         fragment.show(getSupportFragmentManager(), "datePicker");
     }
 
-
-    public void updateDate(String date) {
-        expenseDate.getEditText().setText(date);
+    public static String fixUppercase(String str){
+        if (str.length() > 1){
+            String trimStr = str.trim();
+            String newStr = trimStr.substring(0, 1).toUpperCase() + trimStr.toLowerCase().substring(1);
+            return newStr;
+        }
+        return "";
     }
 
-    public static String getCurrentDate() {
-        final Calendar c = Calendar.getInstance();
-        String year = String.valueOf(c.get(Calendar.YEAR));
-        String month = String.valueOf(c.get(Calendar.MONTH) + 1);
-        String day = String.valueOf(c.get(Calendar.DAY_OF_MONTH));
-        return (day + "/" + month + "/" + year);
+    public static String fixShortYear(String year){
+        String newYear = year;
+        if (year.length() == 2){
+            newYear = "20" + year;
+        }
+        return newYear;
     }
 
+    public static String fixDate(String date){
+        String newDate = date;
+        if(date.substring(0,1).equals("0")){
+            newDate = date.substring(1,2);
+        }
+        return newDate;
+    }
 
     /*********
      *  API  *
@@ -399,6 +419,7 @@ public class NewExpensesActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(String... photoBase64) {
+            // A RECUPERER : logoAnnotations/description & textannotations/description
 
             Vision.Builder visionBuilder = new Vision.Builder(new NetHttpTransport(), new AndroidJsonFactory(), null);
             String cleAPI = "AIzaSyCtMmGlTBQgA28OMFv8ZeCxSkVIh7-9vPk"; // CLE PRIVEE ---> vous DEVEZ vous procurer votre propre clé avec Google
@@ -406,14 +427,21 @@ public class NewExpensesActivity extends AppCompatActivity {
             vision = visionBuilder.build();
 
             // Type d'analyse d'image
-            Feature desiredFeature = new Feature();
-            desiredFeature.setType("TEXT_DETECTION");
+            Feature featureLogo = new Feature();
+            Feature featureText = new Feature();
+            featureLogo.setType("LOGO_DETECTION");
+            featureText.setType("TEXT_DETECTION");
 
             Image inputImage = new Image();
             inputImage.encodeContent(com.google.api.client.util.Base64.decodeBase64(photoBase64[0]));
             AnnotateImageRequest request = new AnnotateImageRequest();
             request.setImage(inputImage);
-            request.setFeatures(Arrays.asList(desiredFeature));
+            request.setFeatures(Arrays.asList(featureLogo, featureText));
+            try {
+                System.out.println("Requete: " + request.toPrettyString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             BatchAnnotateImagesRequest batchRequest = new BatchAnnotateImagesRequest();
             batchRequest.setRequests(Arrays.asList(request));
@@ -428,16 +456,32 @@ public class NewExpensesActivity extends AppCompatActivity {
             }
 
             final TextAnnotation text = batchResponse.getResponses().get(0).getFullTextAnnotation();
+            final List<EntityAnnotation> logo = batchResponse.getResponses().get(0).getLogoAnnotations();
+
+            // Affichage de la réponse logo
+            String result = "";
+
+            if (logo != null) {
+                result += logo.get(0).getDescription();
+            }
+            else{
+                result += " ";
+            }
+            result += "-#-"; //Séparateur
+
+            // Affichage du texte
             if (text != null) {
                 String textReceived = text.getText();
                 System.out.println(textReceived);
                 elapsedTime = ((new Date()).getTime() - startTime) / 1000;
-
-                return textReceived;
-            } else {
-                return null;
+                result += textReceived;
             }
-
+            else{
+                result += " ";
+            }
+            String finalResult = fixUppercase(result);
+            System.out.println("resultFinal = " + finalResult);
+            return finalResult;
         }
 
         protected void onProgressUpdate(Integer... progress) {
@@ -447,7 +491,42 @@ public class NewExpensesActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             mDialog.dismiss();
-            expenseName.getEditText().setText(result);
+            String[] reponse = result.split("-#-");
+            String logo = reponse[0];
+            String text = reponse[1];
+            String montant = "";
+
+            // Détecte un pattern (total digit.digit)
+            Pattern pattern = Pattern.compile("\\b(TOTAL|Total|total)(\\s)*+(\\d)+.(\\d)+");
+            Matcher matcher = pattern.matcher(text);
+
+            if (matcher.find()) {
+                for(int i = 0; i < matcher.groupCount(); i++){
+                    System.out.println("group "+i +": "+matcher.group(i));
+                }
+                // Extrait le montant
+                String totalText = matcher.group(0);
+                Pattern patternMontant = Pattern.compile("(\\s)*+(\\d)+.(\\d)+");
+                Matcher matcherMontant = patternMontant.matcher(totalText);
+
+                if (matcherMontant.find()){
+                    montant = (matcherMontant.group(0)).trim();
+                }
+            }
+
+            // Détecte la date
+            Pattern patternDate = Pattern.compile("\\d\\d(\\s)*/(\\s)*\\d\\d(\\s)*/(\\s)*(\\d{4}|\\d{2})");
+            Matcher matcherDate = patternDate.matcher(text);
+            if (matcherDate.find()) {
+                System.out.println("dateRegex = " + matcherDate.group(0));
+                String[] date = matcherDate.group(0).trim().split("/");
+                String newDate = fixDate(date[1]) +  MainActivity.getMonthFromNb(date[0]) + fixShortYear(date[2]);
+                expenseDate.getEditText().setText(newDate);
+            }
+
+            expenseName.getEditText().setText(logo);
+            expenseAmount.getEditText().setText(montant);
+
             Toast.makeText(getApplicationContext(), String.format("Analyse effectuée en %.1f s", (float) elapsedTime), Toast.LENGTH_SHORT).show();
         }
 
