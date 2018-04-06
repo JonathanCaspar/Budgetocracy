@@ -57,9 +57,9 @@ public class GraphicActivity extends AppCompatActivity {
         //ListView mListView = findViewById(R.id.l_view_graph);
         GridView mGridView = findViewById(R.id.gridview_1);
         DBHelper_Budget DB_Budget = new DBHelper_Budget(this);
-        DB_Budget.deleteDataBase();
-        DB_Budget.insertDataName("aa",200.f,100.f);
-        DB_Budget.insertDataName("aa",200.f,100.f);
+        //DB_Budget.deleteDataBase();
+        //DB_Budget.insertDataName("aa",200.f,100.f);
+        //DB_Budget.insertDataName("aa",200.f,100.f);
         Cursor cursor = DB_Budget.getAllData();
         CustomAdapterGraph customAdapter = new CustomAdapterGraph(this,cursor);
         mGridView.setAdapter(customAdapter);

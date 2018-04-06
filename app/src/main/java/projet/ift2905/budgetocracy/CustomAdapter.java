@@ -47,13 +47,14 @@ public class CustomAdapter extends CursorAdapter{
         DB_Budget = new DBHelper_Budget(context);
 
 
-        String title = cursor.getString(1);
+        String name = cursor.getString(1);
         String categorie = DB_Budget.getStringBudgetWithID(cursor.getString(2));
         String amount = cursor.getString(3);
         String date = cursor.getString(4);
 
+        amount = "-$ "+amount;
 
-        mExpense.setText(title);
+        mExpense.setText(name);
         mCategorie.setText(categorie);
         mAmount.setText(amount);
         mDate.setText(date);

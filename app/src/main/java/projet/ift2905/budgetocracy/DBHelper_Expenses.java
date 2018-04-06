@@ -165,5 +165,105 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
     }
 
 
+    public String getNameExpenseWithID (String id) {
+        //Open connection to read only
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "";
+
+        selectQuery = "SELECT " +
+                DBHelper_Expenses.COL_EXPENSES_2 +
+                " FROM " + DBHelper_Expenses.TABLE_NAME +
+                " WHERE _id = " + id
+        ;
+        //return db.execSQL(selectQuery);
+        Cursor cursor =  db.rawQuery(selectQuery, null);
+
+        if (cursor == null) {
+            return null;
+        } else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+        }
+
+        return cursor.getString(0);
+
+    }
+
+    public String getCategorieExpenseWithID (String id) {
+        //Open connection to read only
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "";
+
+        selectQuery = "SELECT " +
+                DBHelper_Expenses.COL_EXPENSES_3 +
+                " FROM " + DBHelper_Expenses.TABLE_NAME  +
+                " WHERE _id = " + id
+        ;
+        //return db.execSQL(selectQuery);
+        Cursor cursor =  db.rawQuery(selectQuery, null);
+
+        if (cursor == null) {
+            return null;
+        } else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+        }
+
+        return cursor.getString(0);
+
+    }
+
+
+    public String getAmountExpenseWithID (String id) {
+        //Open connection to read only
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "";
+
+        selectQuery = "SELECT " +
+                DBHelper_Expenses.COL_EXPENSES_4 +
+                " FROM " + DBHelper_Expenses.TABLE_NAME  +
+                " WHERE _id = " + id
+        ;
+        //return db.execSQL(selectQuery);
+        Cursor cursor =  db.rawQuery(selectQuery, null);
+
+        if (cursor == null) {
+            return null;
+        } else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+        }
+
+        return cursor.getString(0);
+
+    }
+
+    public String getDateExpenseWithID (String id) {
+        //Open connection to read only
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "";
+
+        selectQuery = "SELECT " +
+                DBHelper_Expenses.COL_EXPENSES_5 +
+                " FROM " + DBHelper_Expenses.TABLE_NAME  +
+                " WHERE _id = " + id
+        ;
+        //return db.execSQL(selectQuery);
+        Cursor cursor =  db.rawQuery(selectQuery, null);
+
+        if (cursor == null) {
+            return null;
+        } else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+        }
+
+        return cursor.getString(0);
+
+    }
+
+
+
+
 
 }

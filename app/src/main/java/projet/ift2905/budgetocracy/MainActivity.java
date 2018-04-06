@@ -20,9 +20,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -88,6 +90,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         DB_Expenses = new DBHelper_Expenses(this);
         DB_Budget = new DBHelper_Budget(this);
+
+        DB_Expenses.deleteDataBase();
+        DB_Budget.deleteDataBase();
+
+
+
+        //#ADDDD===========
+
+
+        DB_Budget.insertDataName("Foot",200,200);
+
+        DB_Expenses.insertDataName("Ballon1",1,230f,"3 Septembre");
+        DB_Expenses.insertDataName("Ballon2",1,240f,"18 Septembre");
+        DB_Expenses.insertDataName("Ballon3",1,250f,"29 Septembre");
+        DB_Expenses.insertDataName("Ballon4",1,260f,"12 Septembre");
+        DB_Expenses.insertDataName("Ballon5",1,2800f,"5 Septembre");
+        DB_Expenses.insertDataName("Ballon14",1,2300f,"19 Septembre");
+        DB_Expenses.insertDataName("Ballon6",1,2f,"23 Septembre");
+        DB_Expenses.insertDataName("Ballon7",1,200f,"21 Septembre");
+        DB_Expenses.insertDataName("Ballon8",1,22323f,"20 Septembre");
+        DB_Expenses.insertDataName("Ballon9",1,222f,"22 Septembre");
+        DB_Expenses.insertDataName("Ballon10",1,214f,"25 Septembre");
+        DB_Expenses.insertDataName("Ballon11",1,25f,"26 Septembre");
+        DB_Expenses.insertDataName("Ballon12",1,28f,"28 Septembre");
+        DB_Expenses.insertDataName("Ballon13",1,29f,"29 Septembre");
+
+
+
+        //#ADDDD===========
 
         showDBexpense = findViewById(R.id.displayDB_expense);
         showDBexpense.setOnClickListener(new View.OnClickListener() {
@@ -316,9 +347,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         mListView.setVisibility(View.GONE);
 
-        final Button mButtonDate =  findViewById(R.id.buttonSortDate);
-        final Button mButtonAmount = findViewById(R.id.buttonSortAmount);
-        final Button mButtonName = findViewById(R.id.buttonSortName);
+        final RadioButton mButtonDate =  findViewById(R.id.buttonSortDate);
+        final RadioButton mButtonAmount = findViewById(R.id.buttonSortAmount);
+        final RadioButton mButtonName = findViewById(R.id.buttonSortName);
 
 
         mButtonDate.setVisibility(View.GONE);
@@ -327,7 +358,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
         final EnumSort mSort = new EnumSort(typeSort.sortByName);
+        mButtonName.setChecked(true);
 
+        // On entre dans la recherche : Gestion recherche + Trie selon le bouton choisi
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(final String query) {
@@ -430,6 +463,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 return false;
             }
         });
+
+        // Quand on clique sur un des items de la liste
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String strId = String.valueOf(id);
+                String tmpName = DB_Expenses.getNameExpenseWithID(strId);
+                String tmpCategorie = DB_Expenses.getCategorieExpenseWithID(strId);
+                tmpCategorie = DB_Budget.getStringBudgetWithID(tmpCategorie);
+                String tmpAmount = DB_Expenses.getAmountExpenseWithID(strId);
+                String tmpDate = DB_Expenses.getDateExpenseWithID(strId);
+                Toast.makeText(MainActivity.this,"Contenue case : "+ tmpName+ " "+tmpCategorie+" "+tmpDate+" "+tmpAmount,Toast.LENGTH_LONG).show();
+            }
+        });
+
+
+
+
 
 
         return true;

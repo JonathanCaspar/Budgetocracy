@@ -107,12 +107,14 @@ public class NewExpensesActivity extends AppCompatActivity {
                     final int[] IDs = new int[categoriesWithID.size()];
                     int i = 0;
 
+
                     Iterator it = categoriesWithID.entrySet().iterator();
                     while (it.hasNext()) {
                         HashMap.Entry budget = (HashMap.Entry)it.next();
                         IDs[i] = (Integer) budget.getKey();
                         categories[i] = (String) budget.getValue();
                         it.remove(); // avoids a ConcurrentModificationException
+                        i++;
                     }
 
                     builder.setItems(categories, new DialogInterface.OnClickListener() {
@@ -122,6 +124,7 @@ public class NewExpensesActivity extends AppCompatActivity {
                             categoryID = IDs[which];
                         }
                     });
+
                 }
                 else{
                     builder.setMessage(R.string.empty_category_db);
