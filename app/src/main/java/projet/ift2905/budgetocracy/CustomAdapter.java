@@ -32,7 +32,9 @@ public class CustomAdapter extends CursorAdapter{
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent){
-        return LayoutInflater.from(context).inflate(R.layout.item_research,parent,false);
+        View v = LayoutInflater.from(context).inflate(R.layout.item_research,parent,false);
+        v.setBackgroundResource(R.drawable.shadow_main_card);
+        return v;
     }
 
 

@@ -122,6 +122,7 @@ public class NewExpensesActivity extends AppCompatActivity {
                         IDs[i] = (Integer) budget.getKey();
                         categories[i] = (String) budget.getValue();
                         it.remove(); // avoids a ConcurrentModificationException
+                        i++;
                     }
 
                     builder.setItems(categories, new DialogInterface.OnClickListener() {
