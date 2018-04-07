@@ -47,6 +47,7 @@ public class NewExpensesActivity extends AppCompatActivity {
 
     private ProgressDialog mDialog = null;
     private DBHelper_Budget dbHelper_budget;
+    private DBHelper_Expenses DB_Expenses;
     private Vision vision; // Client API
 
     private TextInputLayout expenseName;
@@ -70,6 +71,7 @@ public class NewExpensesActivity extends AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
         dbHelper_budget = new DBHelper_Budget(this);
+        DB_Expenses = new DBHelper_Expenses(this);
 
         // Données à entrer
         expenseName = findViewById(R.id.expenseName);
@@ -86,6 +88,28 @@ public class NewExpensesActivity extends AppCompatActivity {
             String[] photoBase64 = {getIntent().getStringExtra("photoBase64")};
             LoadDataFromImage task = new LoadDataFromImage(this);
             task.execute(photoBase64);
+        }
+
+        // Modification de dépense ?
+        if (getIntent().getBooleanExtra("requestModifyData",false)){
+            ab.setTitle("Modifier dépense");
+            String strId = getIntent().getStringExtra("idExpenseToModify");
+
+            String tmpName = DB_Expenses.getNameExpenseWithID(strId);
+            String tmpCategorie = DB_Expenses.getCategorieExpenseWithID(strId);
+            categoryID = Integer.valueOf(tmpCategorie);
+            tmpCategorie = dbHelper_budget.getStringBudgetWithID(tmpCategorie);
+            String tmpAmount = DB_Expenses.getAmountExpenseWithID(strId);
+            String tmpDate = DB_Expenses.getDateExpenseWithID(strId);
+
+
+            expenseName.getEditText().setText(tmpName);
+            expenseDate.getEditText().setText(tmpDate);
+            expenseAmount.getEditText().setText(tmpAmount);
+            expenseCategory.getEditText().setText(tmpCategorie);
+
+
+
         }
 
         // Choix de catégorie
@@ -239,7 +263,28 @@ public class NewExpensesActivity extends AppCompatActivity {
         expenseAddButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (checkInputValidity()) {
+                //Si on est dans le cas d'une modification de dépense
+                if (checkInputValidity() && getIntent().getBooleanExtra("requestModifyData",false)){
+                    //Modification de la dépense dans la base de données
+                    String[] dataToModify = {expenseName.getEditText().getText().toString(),
+                            String.valueOf(categoryID),
+                            expenseAmount.getEditText().getText().toString(),
+                            expenseDate.getEditText().getText().toString()};
+
+                    Toast.makeText(getApplicationContext(), String.valueOf(categoryID), Toast.LENGTH_LONG).show();
+
+                    String strId = getIntent().getStringExtra("idExpenseToModify");
+
+                    Intent intent = getIntent();
+                    intent.putExtra("dataToModify", dataToModify);
+                    intent.putExtra("IdExpense",strId);
+                    setResult(RESULT_OK, intent);
+                    finish();
+
+                }
+
+
+                else if (checkInputValidity()) {
                     //Ajout de la dépense à la base de données
                     String[] dataToSave = {expenseName.getEditText().getText().toString(),
                             String.valueOf(categoryID),

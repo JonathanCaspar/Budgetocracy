@@ -81,13 +81,13 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
         contentValues.put(COL_EXPENSES_3,categoryID);
         contentValues.put(COL_EXPENSES_4,amount);
         contentValues.put(COL_EXPENSES_5,date);
-        db.update(TABLE_NAME,contentValues,"ID = ?",new String[] {id});
+        db.update(TABLE_NAME,contentValues,"_id = ?",new String[] {id});
         return true;
     }
 
     public Integer deleteData (String id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(TABLE_NAME, "ID = ?",new String[] {id});
+        return db.delete(TABLE_NAME, "_id = ?",new String[] {id});
     }
 
     public void deleteDataBase() {

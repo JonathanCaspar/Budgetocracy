@@ -62,7 +62,7 @@ class EnumSort{
 }
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-    //ADD==============
+
     ListView mListView;
     TextView mEmptyView;
 
@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     final int PERMISSION_ALL = 101;
     final int REQUEST_IMAGE_CAPTURE = 102;
     final int REQUEST_EXPENSE_DATA = 103;
+    final int REQUEST_MODIFICATION_EXPENSE_DATA = 104;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,31 +95,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         DB_Expenses.deleteDataBase();
         DB_Budget.deleteDataBase();
 
-
-
-        //#ADDDD===========
-
-
-        DB_Budget.insertDataName("Foot",200,200);
-
-        DB_Expenses.insertDataName("Ballon1",1,230f,"3 Septembre");
-        DB_Expenses.insertDataName("Ballon2",1,240f,"18 Septembre");
-        DB_Expenses.insertDataName("Ballon3",1,250f,"29 Septembre");
-        DB_Expenses.insertDataName("Ballon4",1,260f,"12 Septembre");
-        DB_Expenses.insertDataName("Ballon5",1,2800f,"5 Septembre");
-        DB_Expenses.insertDataName("Ballon14",1,2300f,"19 Septembre");
-        DB_Expenses.insertDataName("Ballon6",1,2f,"23 Septembre");
-        DB_Expenses.insertDataName("Ballon7",1,200f,"21 Septembre");
-        DB_Expenses.insertDataName("Ballon8",1,22323f,"20 Septembre");
-        DB_Expenses.insertDataName("Ballon9",1,222f,"22 Septembre");
-        DB_Expenses.insertDataName("Ballon10",1,214f,"25 Septembre");
-        DB_Expenses.insertDataName("Ballon11",1,25f,"26 Septembre");
-        DB_Expenses.insertDataName("Ballon12",1,28f,"28 Septembre");
-        DB_Expenses.insertDataName("Ballon13",1,29f,"29 Septembre");
-
-
-
-        //#ADDDD===========
 
         showDBexpense = findViewById(R.id.displayDB_expense);
         showDBexpense.setOnClickListener(new View.OnClickListener() {
@@ -219,6 +195,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     DB_Budget.updateRemainingAmount(budgetID, Float.valueOf(dataToAdd[2]));
                     DB_Expenses.insertDataName(dataToAdd[0], budgetID, Float.valueOf(dataToAdd[2]), dataToAdd[3]);
                 }
+                break;
+
+
+            case REQUEST_MODIFICATION_EXPENSE_DATA:
+                if (resultCode == RESULT_OK && data !=null){
+                    Toast.makeText(getApplicationContext(), R.string.successful_expense_modification, Toast.LENGTH_SHORT).show();
+                    String[] dataToModify = data.getStringArrayExtra("dataToModify");
+                    String idExpense = data.getStringExtra("IdExpense");
+
+                    Integer budgetID = Integer.valueOf(dataToModify[1]);
+                    DB_Expenses.updateData(idExpense,dataToModify[0],budgetID,Float.valueOf(dataToModify[2]), dataToModify[3]);
+
+                }
+
         }
     }
 
@@ -322,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Associate searchable configuration with the SearchView
         SearchManager searchManager =
                 (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        SearchView mSearchView =
+        final SearchView mSearchView =
                 (SearchView) menu.findItem(R.id.search).getActionView();
         mSearchView.setSearchableInfo(
                 searchManager.getSearchableInfo(getComponentName()));
@@ -464,17 +454,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
-        // Quand on clique sur un des items de la liste
+        // Quand on clique sur une des dépenses de la liste, on redirige vers la page pour la modifier
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String strId = String.valueOf(id);
-                String tmpName = DB_Expenses.getNameExpenseWithID(strId);
-                String tmpCategorie = DB_Expenses.getCategorieExpenseWithID(strId);
-                tmpCategorie = DB_Budget.getStringBudgetWithID(tmpCategorie);
-                String tmpAmount = DB_Expenses.getAmountExpenseWithID(strId);
-                String tmpDate = DB_Expenses.getDateExpenseWithID(strId);
-                Toast.makeText(MainActivity.this,"Contenue case : "+ tmpName+ " "+tmpCategorie+" "+tmpDate+" "+tmpAmount,Toast.LENGTH_LONG).show();
+
+                // On appelle l'activité pour modifier la dépense (qui est en soit l'activité de création de dépense, auxquelle on fourni un extra particulier)
+                Intent modifyExpense = new Intent(MainActivity.this, NewExpensesActivity.class);
+                modifyExpense.putExtra("requestModifyData", true);
+                modifyExpense.putExtra("idExpenseToModify",strId);
+                startActivityForResult(modifyExpense,REQUEST_MODIFICATION_EXPENSE_DATA);
+
+                // Une fois qu'on a modifié la dépense, on ferme la recherche précédente pour l'actualiser
+                mSearchView.setQuery("", false);
+                mSearchView.setIconified(true);
+
+
             }
         });
 
