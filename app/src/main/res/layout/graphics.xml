@@ -4,15 +4,6 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!--
-    <ListView
-        android:id="@+id/l_view_graph"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="55dp" />
-    -->
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar_1"
         android:layout_width="match_parent"
@@ -65,5 +56,33 @@
             android:text="C" />
 
     </info.hoang8f.android.segmented.SegmentedGroup>
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/toolbar_1"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Expenses by categories" />
+
+
+    <com.github.mikephil.charting.charts.RadarChart
+        android:id="@+id/radar_graph"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/toolbar_1"
+        />
+
+    <com.github.mikephil.charting.charts.BarChart
+        android:id="@+id/bar_graph"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/textView4"
+        />
+
+
 
 </RelativeLayout>

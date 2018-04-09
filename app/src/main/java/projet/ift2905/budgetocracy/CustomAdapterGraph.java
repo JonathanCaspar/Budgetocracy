@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
+import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
@@ -17,6 +18,8 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.utils.ColorTemplate;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -27,6 +30,7 @@ import java.util.ArrayList;
 public class CustomAdapterGraph extends CursorAdapter {
 
     PieChart pieChart;
+    TextView categoryText;
 
     public CustomAdapterGraph (Context context, Cursor c){
         super(context,c);
@@ -41,9 +45,12 @@ public class CustomAdapterGraph extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
 
+        categoryText = (TextView) view.findViewById(R.id.textView5);
+        categoryText.setText(cursor.getString(1));
+
+        // Piechart configuration
         pieChart = (PieChart) view.findViewById(R.id.piechart_1);
         pieChart.setRotationEnabled(true);
-
         pieChart.setUsePercentValues(false);
         pieChart.getDescription().setEnabled(false);
         pieChart.setExtraOffsets(5, 10, 5, 5);
@@ -51,29 +58,32 @@ public class CustomAdapterGraph extends CursorAdapter {
         pieChart.setDrawHoleEnabled(true);
         pieChart.setHoleColor(Color.WHITE);
         pieChart.setHoleRadius(75.f);
-        pieChart.setTransparentCircleRadius(0f);
-
+        pieChart.setTransparentCircleRadius(80f);
         pieChart.setDrawCenterText(true);
+
+        // Disable the legend
         Legend l = pieChart.getLegend();
         l.setEnabled(false);
 
-        // TEXT FROM THE MIDDLE
-        SpannableString s = new SpannableString("Budget: 80.0$\nLeft: 25.0$");
+        // Text from the middle of the piechart graph
+        float budget = Float.parseFloat(cursor.getString(2));
+        float remaining = Float.parseFloat(cursor.getString(3));
+        float usedBudget = budget - remaining;
+        SpannableString s = new SpannableString("Budget: "+budget+"$"+"\nUsed: "+usedBudget+"$"+"\nLeft: "+remaining+"$");
         s.setSpan(new RelativeSizeSpan(0.8f), 0, s.length(), 0);
-        s.setSpan(new ForegroundColorSpan(ColorTemplate.getHoloBlue()),7, 14, 0);
-        s.setSpan(new ForegroundColorSpan(Color.rgb(245,58,58)),20, s.length(), 0);
+        s.setSpan(new ForegroundColorSpan(Color.rgb(245,58,58)),s.length()-1-Float.toString(remaining).length(), s.length(), 0);
         pieChart.setCenterText(s);
 
-        // ADD VALUES
+        // Add the values to the piechart
         ArrayList<PieEntry> yValues = new ArrayList<>();
-        yValues.add(new PieEntry(20f, ""));
-        yValues.add(new PieEntry(50f, ""));
+        yValues.add(new PieEntry(usedBudget, ""));
+        yValues.add(new PieEntry(remaining, ""));
         PieDataSet dataSet = new PieDataSet(yValues,"Budget");
         dataSet.setSliceSpace(3f);
         dataSet.setSelectionShift(5f);
         dataSet.setValueTextSize(0f);
 
-        // ADD COLORS
+        // Piechart bar colors
         ArrayList colors = new ArrayList();
         colors.add(0xFF10B073); // VERT
         colors.add(Color.RED); // ROUGE
@@ -81,6 +91,7 @@ public class CustomAdapterGraph extends CursorAdapter {
 
         PieData data = new PieData((dataSet));
         pieChart.setData(data);
+
     }
 
 }
