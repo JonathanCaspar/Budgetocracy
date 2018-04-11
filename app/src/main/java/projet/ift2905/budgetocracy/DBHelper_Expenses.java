@@ -81,23 +81,19 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
         contentValues.put(COL_EXPENSES_3,categoryID);
         contentValues.put(COL_EXPENSES_4,amount);
         contentValues.put(COL_EXPENSES_5,date);
-        db.update(TABLE_NAME,contentValues,"ID = ?",new String[] {id});
+        db.update(TABLE_NAME,contentValues,"_id = ?",new String[] {id});
         return true;
     }
 
     public Integer deleteData (String id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(TABLE_NAME, "ID = ?",new String[] {id});
+        return db.delete(TABLE_NAME, "_id = ?",new String[] {id});
     }
 
     public void deleteDataBase() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DELETE FROM "+ TABLE_NAME); //delete all rows in a table
     }
-
-
-
-
 
     public Cursor getExpenseListByKeyword (String search, EnumSort sort){
         //Open connection to read only
@@ -165,5 +161,121 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
     }
 
 
+    public String getNameExpenseWithID (String id) {
+        //Open connection to read only
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "";
 
+        selectQuery = "SELECT " +
+                DBHelper_Expenses.COL_EXPENSES_2 +
+                " FROM " + DBHelper_Expenses.TABLE_NAME +
+                " WHERE _id = " + id
+        ;
+        //return db.execSQL(selectQuery);
+        Cursor cursor =  db.rawQuery(selectQuery, null);
+
+        if (cursor == null) {
+            return null;
+        } else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+        }
+
+        return cursor.getString(0);
+
+    }
+
+    public String getCategorieExpenseWithID (String id) {
+        //Open connection to read only
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "";
+
+        selectQuery = "SELECT " +
+                DBHelper_Expenses.COL_EXPENSES_3 +
+                " FROM " + DBHelper_Expenses.TABLE_NAME  +
+                " WHERE _id = " + id
+        ;
+        //return db.execSQL(selectQuery);
+        Cursor cursor =  db.rawQuery(selectQuery, null);
+
+        if (cursor == null) {
+            return null;
+        } else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+        }
+
+        return cursor.getString(0);
+
+    }
+
+
+    public String getAmountExpenseWithID (String id) {
+        //Open connection to read only
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "";
+
+        selectQuery = "SELECT " +
+                DBHelper_Expenses.COL_EXPENSES_4 +
+                " FROM " + DBHelper_Expenses.TABLE_NAME  +
+                " WHERE _id = " + id
+        ;
+        //return db.execSQL(selectQuery);
+        Cursor cursor =  db.rawQuery(selectQuery, null);
+
+        if (cursor == null) {
+            return null;
+        } else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+        }
+
+        return cursor.getString(0);
+
+    }
+
+    public String getDateExpenseWithID (String id) {
+        //Open connection to read only
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "";
+
+        selectQuery = "SELECT " +
+                DBHelper_Expenses.COL_EXPENSES_5 +
+                " FROM " + DBHelper_Expenses.TABLE_NAME  +
+                " WHERE _id = " + id
+        ;
+        //return db.execSQL(selectQuery);
+        Cursor cursor =  db.rawQuery(selectQuery, null);
+
+        if (cursor == null) {
+            return null;
+        } else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+        }
+
+        return cursor.getString(0);
+
+    }
+
+
+    public String getStringWithID(String id) {
+        //Open connection to read only
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT " +
+                DBHelper_Expenses.COL_EXPENSES_2 +
+                " FROM " + DBHelper_Expenses.TABLE_NAME  +
+                " WHERE _id = " + id
+        ;
+        //return db.execSQL(selectQuery);
+        Cursor cursor =  db.rawQuery(selectQuery, null);
+
+        if (cursor == null) {
+            return null;
+        } else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+        }
+        return cursor.getString(0);
+    }
 }

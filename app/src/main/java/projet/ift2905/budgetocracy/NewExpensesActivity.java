@@ -6,9 +6,11 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBar;
@@ -53,6 +55,7 @@ public class NewExpensesActivity extends AppCompatActivity {
 
     private ProgressDialog mDialog = null;
     private DBHelper_Budget dbHelper_budget;
+    private DBHelper_Expenses DB_Expenses;
     private Vision vision; // Client API
 
     private TextInputLayout expenseName;
@@ -66,6 +69,7 @@ public class NewExpensesActivity extends AppCompatActivity {
 
     private int categoryID = -1;
     private final int REQUEST_NEW_CATEGORY = 101;
+    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +80,8 @@ public class NewExpensesActivity extends AppCompatActivity {
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
         dbHelper_budget = new DBHelper_Budget(this);
+        DB_Expenses = new DBHelper_Expenses(this);
+        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         // Données à entrer
         expenseName = findViewById(R.id.expenseName);
@@ -97,10 +103,29 @@ public class NewExpensesActivity extends AppCompatActivity {
             task.execute(photoBase64);
         }
 
+        // Modification de dépense ?
+        if (getIntent().getBooleanExtra("requestModifyData",false)){
+            ab.setTitle(R.string.modifierDepense);
+            String strId = getIntent().getStringExtra("idExpenseToModify");
+
+            String tmpName = DB_Expenses.getNameExpenseWithID(strId);
+            String tmpCategorie = DB_Expenses.getCategorieExpenseWithID(strId);
+            categoryID = Integer.valueOf(tmpCategorie);
+            tmpCategorie = dbHelper_budget.getStringBudgetWithID(tmpCategorie);
+            String tmpAmount = DB_Expenses.getAmountExpenseWithID(strId);
+            String tmpDate = DB_Expenses.getDateExpenseWithID(strId);
+
+            expenseName.getEditText().setText(tmpName);
+            expenseDate.getEditText().setText(tmpDate);
+            expenseAmount.getEditText().setText(tmpAmount);
+            expenseCategory.getEditText().setText(tmpCategorie);
+        }
+        else{
+            expenseDate.getEditText().setText(MainActivity.getCurrentDate(getApplicationContext()));
+        }
+
         // Choix de catégorie
         expenseCategory.getEditText().setOnClickListener(new View.OnClickListener() {
-            private AlertDialog alertDialog = null;
-
             @Override
             public void onClick(View v) {
                 //Récupère la liste des budgets
@@ -115,6 +140,7 @@ public class NewExpensesActivity extends AppCompatActivity {
                     final String[] categories = new String[categoriesWithID.size()];
                     final int[] IDs = new int[categoriesWithID.size()];
                     int i = 0;
+
 
                     Iterator it = categoriesWithID.entrySet().iterator();
                     while (it.hasNext()) {
@@ -152,7 +178,22 @@ public class NewExpensesActivity extends AppCompatActivity {
                 alertDialog.getButton(alertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorPrimary));
             }
         });
-        expenseDate.getEditText().setText(MainActivity.getCurrentDate());
+
+        // Montant
+        expenseAmount.getEditText().addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                s.append(" " + prefs.getString("currency", "$"));
+            }
+        });
 
         // Choix de la fréquence de période
         recurrenceButton.setOnClickListener(new View.OnClickListener() {
@@ -247,7 +288,28 @@ public class NewExpensesActivity extends AppCompatActivity {
         expenseAddButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (checkInputValidity()) {
+                //Si on est dans le cas d'une modification de dépense
+                if (checkInputValidity() && getIntent().getBooleanExtra("requestModifyData",false)){
+                    //Modification de la dépense dans la base de données
+                    String[] dataToModify = {expenseName.getEditText().getText().toString(),
+                            String.valueOf(categoryID),
+                            expenseAmount.getEditText().getText().toString(),
+                            expenseDate.getEditText().getText().toString()};
+
+                    Toast.makeText(getApplicationContext(), String.valueOf(categoryID), Toast.LENGTH_LONG).show();
+
+                    String strId = getIntent().getStringExtra("idExpenseToModify");
+
+                    Intent intent = getIntent();
+                    intent.putExtra("dataToModify", dataToModify);
+                    intent.putExtra("IdExpense",strId);
+                    setResult(RESULT_OK, intent);
+                    finish();
+
+                }
+
+
+                else if (checkInputValidity()) {
                     //Ajout de la dépense à la base de données
                     String[] dataToSave = {expenseName.getEditText().getText().toString(),
                             String.valueOf(categoryID),
@@ -521,7 +583,7 @@ public class NewExpensesActivity extends AppCompatActivity {
             if (matcherDate.find()) {
                 System.out.println("dateRegex = " + matcherDate.group(0));
                 String[] date = matcherDate.group(0).trim().split("/");
-                String newDate = fixDate(date[1]) +  MainActivity.getMonthFromNb(date[0]) + fixShortYear(date[2]);
+                String newDate = fixDate(date[1]) +  MainActivity.getMonthFromNb(date[0], getApplicationContext()) + fixShortYear(date[2]);
                 expenseDate.getEditText().setText(newDate);
             }
 
@@ -530,7 +592,6 @@ public class NewExpensesActivity extends AppCompatActivity {
 
             Toast.makeText(getApplicationContext(), String.format("Analyse effectuée en %.1f s", (float) elapsedTime), Toast.LENGTH_SHORT).show();
         }
-
     }
 
     @Override

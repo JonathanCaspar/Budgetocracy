@@ -1,19 +1,41 @@
 package projet.ift2905.budgetocracy;
 
 
+import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.GridView;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.RadioButton;
 
 import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
+import com.github.mikephil.charting.utils.ColorTemplate;
+import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
-import info.hoang8f.android.segmented.SegmentedGroup;
+import java.util.ArrayList;
+import java.util.Random;
+
+import static com.github.mikephil.charting.utils.ColorTemplate.*;
 
 public class GraphicActivity extends AppCompatActivity {
 
@@ -33,12 +55,11 @@ public class GraphicActivity extends AppCompatActivity {
 
         pieChart =  findViewById(R.id.piechart_1);
         //ListView mListView = findViewById(R.id.l_view_graph);
-        SegmentedGroup choixGraphe = findViewById(R.id.choixGraphe);
-        choixGraphe.setTintColor(getResources().getColor(R.color.colorIcons), getResources().getColor(R.color.colorPrimary));
-
         GridView mGridView = findViewById(R.id.gridview_1);
         DBHelper_Budget DB_Budget = new DBHelper_Budget(this);
-
+        //DB_Budget.deleteDataBase();
+        //DB_Budget.insertDataName("aa",200.f,100.f);
+        //DB_Budget.insertDataName("aa",200.f,100.f);
         Cursor cursor = DB_Budget.getAllData();
         CustomAdapterGraph customAdapter = new CustomAdapterGraph(this,cursor);
         mGridView.setAdapter(customAdapter);

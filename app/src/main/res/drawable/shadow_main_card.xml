@@ -58,26 +58,12 @@
             <corners android:radius="3dp" />
         </shape>
     </item>
-    <item>
-        <shape>
-            <padding
-                android:bottom="1dp"
-                android:left="1dp"
-                android:right="1dp"
-                android:top="1dp" />
-
-            <corners android:radius="3dp" />
-            <solid android:color="#50CCCCCC" />
-
-            <corners android:radius="3dp" />
-        </shape>
-    </item>
 
     <!-- Background -->
     <item>
         <shape>
             <corners android:radius="3dp" />
-            <solid android:color="#FFFFEF" />
+            <solid android:color="#FFFFFF" />
         </shape>
     </item>
 
