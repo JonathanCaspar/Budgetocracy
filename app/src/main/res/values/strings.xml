@@ -28,6 +28,7 @@
     <string name="OK">OK</string>
     <string name="empty_name_error">Vous devez saisir un nom.</string>
     <string name="successful_expense_add">Dépense ajoutée avec succès !</string>
+    <string name= "successful_expense_modification">Dépense modifiée avec succès !</string>
     <string name="empty_category_error">Vous devez choisir une catégorie.</string>
     <string name="empty_amount_error">Vous devez saisir un montant.</string>
     <string name="failed_expense_add">Echec lors de l\'ajout de la dépense. Veuillez ré-essayer.</string>
@@ -36,10 +37,46 @@
     <string name="negative_amount_error">Veuillez saisir un montant valide positif.</string>
     <string name="successful_category_add">Catégorie crée avec succès !</string>
 
+
     <string name="research">Recherche</string>
     <string name="research_SortDate">Date</string>
     <string name="research_SortAmount">Montant</string>
     <string name="research_SortName">Nom</string>
-
+    <string name="janvier">Janvier</string>
+    <string name="fevrier">Février</string>
+    <string name="mars">Mars</string>
+    <string name="avril">Avril</string>
+    <string name="mai">Mai</string>
+    <string name="juin">Juin</string>
+    <string name="juillet">Juillet</string>
+    <string name="aout">Août</string>
+    <string name="septembre">Septembre</string>
+    <string name="octobre">Octobre</string>
+    <string name="novembre">Novembre</string>
+    <string name="decembre">Décembre</string>
+    <string name="modifierDepense">Modifier la dépense</string>
+    <string name="alimentation">Alimentation</string>
+    <string name="logement">Logement</string>
+    <string name="telephone">Téléphone</string>
+    <string name="internet">Internet</string>
+    <string name="loisirs">Loisirs</string>
+    <string name="transport">Transport</string>
+    <string name="pick_currency">Choisir une devise</string>
+    <string name="CAD">dollar canadien</string>
+    <string name="EUR">euro</string>
+    <string name="USD">dollar américain</string>
+    <string name="AUD">dollar australien</string>
+    <string name="GBP">livre sterling</string>
+    <string name="CHF">franc suisse</string>
+    <string name="JPY">yen japonais</string>
+    <string name="ZAR">rand sud africain</string>
+    <string name="change_currency">Changer la devise</string>
+    <string name="erase_all_data">Suppression de toutes les données</string>
+    <string name="erase_all_data_message">Une suppression des données entrainera la perte irréversible de l\'ensemble de vos dépenses et catégories. \n\nÊtes-vous sûr de vouloir continuer ?</string>
+    <string name="erase_all">Tout supprimer</string>
+    <string name="successful_erased_data">Toutes les données ont été effacées !</string>
+    <string name="modify">Modifier</string>
+    <string name="delete">Supprimer</string>
+    <string name="successful_expense_deleted">Dépense supprimée</string>
 
 </resources>

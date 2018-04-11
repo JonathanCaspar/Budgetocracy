@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="com.android.support:transition-27.1.0">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/transition-27.1.0.aar/dd6eacc8a2d5a024200a38fd05ad959a/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/transition-27.1.0.aar/dd6eacc8a2d5a024200a38fd05ad959a/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/transition-27.1.0.aar/0273d85b05c96e2f5e61854443a26b78/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/transition-27.1.0.aar/0273d85b05c96e2f5e61854443a26b78/jars/classes.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
