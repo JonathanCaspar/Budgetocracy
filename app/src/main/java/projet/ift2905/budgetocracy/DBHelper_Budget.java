@@ -124,14 +124,10 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
         db.execSQL("DELETE FROM "+TABLE_NAME); //delete all rows in a table
     }
 
-
-
     public String getStringBudgetWithID (String search) {
         //Open connection to read only
         SQLiteDatabase db = this.getReadableDatabase();
-        String selectQuery = "";
-
-        selectQuery = "SELECT " +
+        String selectQuery = "SELECT " +
                 DBHelper_Budget.COL_BUDGET_1 +
                 " FROM " + DBHelper_Budget.TABLE_NAME +
                 " WHERE _id = " + search
@@ -149,9 +145,6 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
         return cursor.getString(0);
 
     }
-
-
-
 
 
 

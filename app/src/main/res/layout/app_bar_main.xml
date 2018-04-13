@@ -17,7 +17,8 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            />
 
     </android.support.design.widget.AppBarLayout>
 
@@ -33,11 +34,11 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
         android:layout_gravity="bottom"
-        android:background="@color/colorPrimaryDark"
+        android:background="@drawable/shadowbox"
         android:clickable="true"
         android:fadeScrollbars="false"
-        app:itemIconTint="@color/colorWhite"
+        app:itemIconTint="@color/colorIcons"
         app:layout_constraintBottom_toBottomOf="@+id/include"
-        app:menu="@menu/navigation_bar_menu"/>
+        app:menu="@menu/navigation_bar_menu" />
 
 </android.support.constraint.ConstraintLayout>

@@ -1,7 +1,10 @@
 package projet.ift2905.budgetocracy;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.media.Image;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
@@ -17,6 +20,9 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import org.w3c.dom.Text;
+
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class NewCategoriesActivity extends AppCompatActivity {
 
@@ -95,6 +101,32 @@ public class NewCategoriesActivity extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
             public void afterTextChanged(Editable s) {}
+        });
+
+        // Suggestion de catégories
+        categoryHint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final String[] listCategory = { getString(R.string.alimentation),
+                                          getString(R.string.logement),
+                                          getString(R.string.telephone),
+                                          getString(R.string.internet),
+                                          getString(R.string.loisirs),
+                                          getString(R.string.transport)
+                };
+                //Crée la fenêtre de base
+                AlertDialog.Builder builder = new AlertDialog.Builder(NewCategoriesActivity.this);
+                builder.setTitle(R.string.pick_category);
+                builder.setItems(listCategory, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        categoryName.getEditText().setText(listCategory[which]);
+                    }
+                });
+                builder.setCancelable(true);
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+            }
         });
     }
 

@@ -18,7 +18,7 @@
             android:layout_gravity="bottom|center"
             android:layout_marginBottom="10dp"
             android:clickable="true"
-            app:backgroundTint="@color/colorWhite"
+            app:backgroundTint="@color/colorIcons"
             app:elevation="4dp"
             app:srcCompat="@drawable/ic_menu_camera" />
 

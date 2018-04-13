@@ -4,14 +4,19 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.net.sip.SipSession;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -21,10 +26,13 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.RadioButton;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.SearchView;
@@ -43,7 +51,7 @@ import info.hoang8f.android.segmented.SegmentedGroup;
 enum typeSort{
     sortByName,
     sortByDate,
-    sortByAmount;
+    sortByAmount
 }
 
 class EnumSort{
@@ -70,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     TextView mEmptyView;
     Cursor cursor;
     private CustomAdapter customAdapter;
+    public SharedPreferences prefs;
 
     // INTERFACE
     private BottomNavigationViewEx mBottomBar; // Menu de l'écran principal
@@ -99,10 +108,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
         DB_Expenses = new DBHelper_Expenses(this);
         DB_Budget = new DBHelper_Budget(this);
 
-        // # A SUPPRIMER
+        View view = this.getWindow().getDecorView();
+        view.setBackgroundColor(getResources().getColor(R.color.colorMainBackground));
+
+
         showDBexpense = findViewById(R.id.displayDB_expense);
         showDBexpense.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -146,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Toolbar (en haut)
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(getCurrentMonth());
+        getSupportActionBar().setTitle(getCurrentDate(getApplicationContext()));
 
         // Barre de navigation (en bas)
         mBottomBar = findViewById(R.id.menuBar);
@@ -266,8 +280,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      *****************/
     // Gère la réponse d'un utilisateur à une requête de permission
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case PERMISSION_ALL:
                 // If request is cancelled, the result arrays are empty.
@@ -304,52 +317,44 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    /**
-     *  Partie pas importante : gère l'affichage du Drawer (menu latéral)
-            **/
-
-    // Affiche le mois courant dans le Toolbar
-    public String getCurrentMonth(){
-        DateFormat dateFormat = new SimpleDateFormat("MM");
+    // Affiche la date courante dans le Toolbar
+    public static String getCurrentDate(Context ctx){
+        DateFormat dateFormat = new SimpleDateFormat("d/MM/yyyy");
         Date date = new Date();
-        String mois = dateFormat.format(date);
+        String[] dateStr = dateFormat.format(date).split("/");
 
-        switch(mois) {
-            case "01":
-                return "Janvier";
-            case "02":
-                return "Février";
-            case "03":
-                return "Mars";
-            case "04":
-                return "Avril";
-            case "05":
-                return "Mai";
-            case "06":
-                return "Juin";
-            case "07":
-                return "Juillet";
-            case "08":
-                return "Août";
-            case "09":
-                return "Septembre";
-            case "10":
-                return "Octobre";
-            case "11":
-                return "Novembre";
-            case "12":
-                return "Décembre";
-            default :
-                return "Cinglinglin";
-        }
+        return dateStr[0] + getMonthFromNb(dateStr[1], ctx) + dateStr[2];
     }
 
-    public void showMessage(String title, String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setCancelable(true);
-        builder.setTitle(title);
-        builder.setMessage(message);
-        builder.show();
+    public static String getMonthFromNb(String nb, Context ctx){
+        switch(nb) {
+            case "01":
+                return " " + ctx.getString(R.string.janvier) + " ";
+            case "02":
+                return " " + ctx.getString(R.string.fevrier) + " ";
+            case "03":
+                return " " + ctx.getString(R.string.mars) + " ";
+            case "04":
+                return " " + ctx.getString(R.string.avril) + " ";
+            case "05":
+                return " " + ctx.getString(R.string.mai) + " ";
+            case "06":
+                return " " + ctx.getString(R.string.juin) + " ";
+            case "07":
+                return " " + ctx.getString(R.string.juillet) + " ";
+            case "08":
+                return " " + ctx.getString(R.string.aout) + " ";
+            case "09":
+                return " " + ctx.getString(R.string.septembre) + " ";
+            case "10":
+                return " " + ctx.getString(R.string.octobre) + " ";
+            case "11":
+                return " " + ctx.getString(R.string.novembre) + " ";
+            case "12":
+                return " " + ctx.getString(R.string.decembre) + " ";
+            default:
+                return " Cinglinglin ";
+        }
     }
 
     @Override
@@ -366,12 +371,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mSearchView.setSearchableInfo(
                 searchManager.getSearchableInfo(getComponentName()));
 
-        mSearchView.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+        // Retire la barre en dessous de la recherche
+        int searchPlateId = mSearchView.getContext().getResources()
+                .getIdentifier("android:id/search_plate", null, null);
+        View searchPlateView = mSearchView.findViewById(searchPlateId);
+
+        SegmentedGroup mSegGroup = findViewById(R.id.segGroupResearch);
+        mSegGroup.setTintColor(getResources().getColor(R.color.colorPrimary));
 
         SegmentedGroup mSegGroup = findViewById(R.id.segGroupResearch);
         mSegGroup.setTintColor(getResources().getColor(R.color.colorPrimary));
 
         mSearchView.setQueryHint("Recherche");
+        if (searchPlateView != null) {
+            searchPlateView.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+        }
+
+        mSearchView.setQueryHint(getResources().getString(R.string.research));
         mEmptyView =  findViewById(R.id.txtName);
         mListView = findViewById(R.id.lstExpenses);
 
@@ -380,10 +396,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         customAdapter = new CustomAdapter(this,cursor);
 
         mListView.setAdapter((ListAdapter) customAdapter);
-
-
         mListView.setEmptyView(mEmptyView);
-
         mListView.setVisibility(View.GONE);
 
         final RadioButton mButtonDate =  findViewById(R.id.buttonSortDate);
@@ -395,7 +408,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mButtonAmount.setVisibility(View.GONE);
         mButtonName.setVisibility(View.GONE);
 
-
         final EnumSort mSort = new EnumSort(typeSort.sortByName);
         mButtonName.setChecked(true);
 
@@ -404,6 +416,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public boolean onQueryTextSubmit(final String query) {
                 cursor = DB_Expenses.getExpenseListByKeyword(query,mSort);
+
                 if (cursor==null){
                     Toast.makeText(MainActivity.this,"Pas de dépense trouvée!",Toast.LENGTH_LONG).show();
                 }else{
@@ -443,6 +456,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public boolean onQueryTextChange(final String newText) {
                 mListView.setVisibility(View.VISIBLE);
+                mListView.setDivider(null);
+                mListView.setDividerHeight(2);
                 mButtonDate.setVisibility(View.VISIBLE);
                 mButtonAmount.setVisibility(View.VISIBLE);
                 mButtonName.setVisibility(View.VISIBLE);
@@ -451,8 +466,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 showDBbudget.setVisibility(View.GONE);
                 showDBexpense.setVisibility(View.GONE);
 
-
                 cursor = DB_Expenses.getExpenseListByKeyword(newText,mSort);
+
                 customAdapter.changeCursor(cursor);
                 if (cursor !=null){
                     customAdapter.changeCursor(cursor);
@@ -462,7 +477,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onClick(View v) {
                         mSort.changeSort(typeSort.sortByAmount);
-                        cursor= DB_Expenses.getExpenseListByKeyword(newText,mSort);
+                        cursor = DB_Expenses.getExpenseListByKeyword(newText,mSort);
                         customAdapter.changeCursor(cursor);
                     }
                 });
@@ -500,7 +515,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mBottomBar.setVisibility(View.VISIBLE);
                 showDBbudget.setVisibility(View.VISIBLE);
                 showDBexpense.setVisibility(View.VISIBLE);
-
                 return false;
             }
         });
@@ -509,31 +523,89 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String strId = String.valueOf(id);
+                final String strId = String.valueOf(id);
+                String[] list = {getResources().getString(R.string.modify), getResources().getString(R.string.delete)};
 
-                // On appelle l'activité pour modifier la dépense (qui est en soit l'activité de création de dépense, auxquelle on fourni un extra particulier)
-                Intent modifyExpense = new Intent(MainActivity.this, NewExpensesActivity.class);
-                modifyExpense.putExtra("requestModifyData", true);
-                modifyExpense.putExtra("idExpenseToModify",strId);
-                startActivityForResult(modifyExpense,REQUEST_MODIFICATION_EXPENSE_DATA);
+                final AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+                builder.setCancelable(true);
+                builder.setItems(list, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch(which){
+                            case 0: // Modification
+                                // On appelle l'activité pour modifier la dépense (qui est en soit l'activité de création de dépense, auxquelle on fourni un extra particulier)
+                                Intent modifyExpense = new Intent(MainActivity.this, NewExpensesActivity.class);
+                                modifyExpense.putExtra("requestModifyData", true);
+                                modifyExpense.putExtra("idExpenseToModify",strId);
+                                startActivityForResult(modifyExpense,REQUEST_MODIFICATION_EXPENSE_DATA);
 
-                // Une fois qu'on a modifié la dépense, on ferme la recherche précédente pour l'actualiser
-                mSearchView.setQuery("", false);
-                mSearchView.setIconified(true);
+                                // Une fois qu'on a modifié la dépense, on ferme la recherche précédente pour l'actualiser
+                                mSearchView.setQuery("", false);
+                                mSearchView.setIconified(true);
+                                break;
 
+                            case 1: // Suppression
+                                DB_Expenses.deleteData(strId);
+                                Snackbar.make(findViewById(R.id.myCoordinatorLayout),R.string.successful_expense_deleted, Snackbar.LENGTH_SHORT).show();
+                                cursor = DB_Expenses.getExpenseListByKeyword("",mSort);
+                                customAdapter.changeCursor(cursor);
+                                break;
 
+                            default:
+                                break;
+                        }
+                    }
+                }) ;
+                builder.show();
             }
         });
-
-
-
-
-
-
         return true;
     }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
 
+            case R.id.action_settings:
+                final String[] listCurrencies = { "$ - " + getString(R.string.CAD),
+                        "€ - " + getString(R.string.EUR),
+                        "$ - " + getString(R.string.USD),
+                        "$ - " + getString(R.string.AUD),
+                        "£ - " + getString(R.string.GBP),
+                        "Fr. - "+getString(R.string.CHF),
+                        "¥ - " + getString(R.string.JPY),
+                        "R - " + getString(R.string.ZAR),
+                };
+
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setCancelable(true);
+                builder.setTitle(R.string.pick_currency);
+                builder.setItems(listCurrencies, null);
+
+                int currentChoice = prefs.getInt("currencyID", 0);
+
+                builder.setSingleChoiceItems(listCurrencies, currentChoice, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String chosenCurrency = listCurrencies[which].split("-")[0].trim();
+                        SharedPreferences.Editor editor = prefs.edit();
+
+                        editor.putString("currency", chosenCurrency);
+                        editor.putInt("currencyID", which); // Modification du paramètre "devise"
+                        editor.apply();
+                        Toast.makeText(getApplicationContext(), "Devise choisie : "+ chosenCurrency, Toast.LENGTH_LONG).show();
+                        dialog.dismiss();
+                    }
+                });
+
+                builder.setNegativeButton(R.string.cancel,null);
+                builder.show();
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+*/
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -550,22 +622,36 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        switch(id){
+            case R.id.nav_erase_data:
+                final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setCancelable(true);
+                builder.setTitle(R.string.erase_all_data);
+                builder.setMessage(R.string.erase_all_data_message);
+                builder.setNegativeButton(R.string.cancel, null);
+                builder.setPositiveButton(R.string.erase_all, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        DB_Expenses.deleteDataBase();
+                        DB_Budget.deleteDataBase();
+                        Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_erased_data, Snackbar.LENGTH_LONG).show();
+                    }
+                });
+                builder.show();
+                break;
 
-        } else if (id == R.id.nav_slideshow) {
+            case R.id.nav_communicate:
+                Snackbar.make(findViewById(R.id.myCoordinatorLayout), "Pas implémenté car pas nécéssaire", Snackbar.LENGTH_LONG).show();
+                break;
 
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+            case R.id.nav_donation:
+                Snackbar.make(findViewById(R.id.myCoordinatorLayout), "Pas implémenté, nous ne sommes pas des escrocs", Snackbar.LENGTH_LONG).show();
+                break;
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
 }
