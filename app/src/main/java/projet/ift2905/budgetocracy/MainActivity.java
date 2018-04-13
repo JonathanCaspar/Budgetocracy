@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
@@ -24,6 +25,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.SearchView;
 import android.widget.TextView;
@@ -63,9 +65,9 @@ class EnumSort{
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
+    //RECHERCHE
     ListView mListView;
     TextView mEmptyView;
-
     Cursor cursor;
     private CustomAdapter customAdapter;
 
@@ -75,6 +77,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private Button showDBbudget;
     private DBHelper_Expenses DB_Expenses;
     private DBHelper_Budget DB_Budget;
+
+    //LISTE BUDGET MAIN
+    ListView mListViewBudget;
+    Cursor cursorBudget;
+    private CustomAdapterMainBudget customAdapterBudget;
+
+
+
 
     final String[] PERMISSIONS = {Manifest.permission.CAMERA,
                                   Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -92,10 +102,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         DB_Expenses = new DBHelper_Expenses(this);
         DB_Budget = new DBHelper_Budget(this);
 
-        DB_Expenses.deleteDataBase();
-        DB_Budget.deleteDataBase();
-
-
+        // # A SUPPRIMER
         showDBexpense = findViewById(R.id.displayDB_expense);
         showDBexpense.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -110,6 +117,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 showMessage("Base de données - Budget :", DB_Budget.getAllStringData());
             }
         });
+        // #
+
+
+        // Gère la liste des budgets apparaissant dans le menu principal
+        cursorBudget = DB_Budget.getAllData();
+        mListViewBudget = findViewById(R.id.lstBudget);
+        customAdapterBudget = new CustomAdapterMainBudget(this,cursorBudget);
+        mListViewBudget.setAdapter((ListAdapter) customAdapterBudget);
+        mListViewBudget.setDivider(null);
+
+        // Quand on clique sur une des dépenses de la liste, on redirige vers la page pour la modifier
+        mListViewBudget.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String strId = String.valueOf(id);
+
+                // On appelle l'activité pour visualiser la liste des dépenses liée au budget
+                Intent seeExpensesRelativeToBudget = new Intent(MainActivity.this, ExpensesRelativeToBudget.class);
+                seeExpensesRelativeToBudget.putExtra("idBudget", strId);
+                startActivity(seeExpensesRelativeToBudget);
+
+
+            }
+        });
+
 
         // Toolbar (en haut)
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -169,6 +201,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
+
+
+    // Reactualise l'affichage de la liste de Budgets quand on revient à la mainActivity
+    @Override
+    protected void onResume(){
+        super.onResume();
+        cursorBudget = DB_Budget.getAllData();
+
+
+        mListViewBudget = findViewById(R.id.lstBudget);
+        customAdapterBudget = new CustomAdapterMainBudget(this,cursorBudget);
+        mListViewBudget.setAdapter((ListAdapter) customAdapterBudget);
+
+
+
+    }
+
 
     // Récupère les données attendues d'une activité selon le "requestCode"
     @Override
@@ -402,6 +451,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 showDBbudget.setVisibility(View.GONE);
                 showDBexpense.setVisibility(View.GONE);
 
+
                 cursor = DB_Expenses.getExpenseListByKeyword(newText,mSort);
                 customAdapter.changeCursor(cursor);
                 if (cursor !=null){
@@ -450,6 +500,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mBottomBar.setVisibility(View.VISIBLE);
                 showDBbudget.setVisibility(View.VISIBLE);
                 showDBexpense.setVisibility(View.VISIBLE);
+
                 return false;
             }
         });
@@ -482,24 +533,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    /*
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        switch (id){
-            case R.id.action_settings:
-                return true;
 
-            case R.id.searchMenuItem:
-                startActivity(new Intent(MainActivity.this, ResearchActivity.class));
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-*/
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

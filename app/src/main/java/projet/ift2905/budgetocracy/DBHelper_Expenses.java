@@ -98,7 +98,6 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
 
 
 
-
     public Cursor getExpenseListByKeyword (String search, EnumSort sort){
         //Open connection to read only
         SQLiteDatabase db = this.getReadableDatabase();
@@ -263,6 +262,28 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
     }
 
 
+    public Cursor getExpensesAssociateToBudget (String idBudget){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery="";
+
+        selectQuery = "SELECT * FROM " + DBHelper_Expenses.TABLE_NAME  +
+                " WHERE "+ DBHelper_Expenses.COL_EXPENSES_3 +"=" + idBudget
+        ;
+
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+
+        if (cursor == null) {
+            return null;
+        } else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+        }
+        return cursor;
+
+
+
+    }
 
 
 
