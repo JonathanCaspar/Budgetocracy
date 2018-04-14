@@ -17,8 +17,10 @@
         <SurfaceView
             android:layout_width="3dp"
             android:layout_height="fill_parent"
-            android:color="#555"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:layout_marginBottom="3dp"
+            android:layout_marginTop="7dp"
+            android:color="#555" />
 
 
         <LinearLayout
@@ -48,23 +50,28 @@
                         android:id="@+id/budgetValue"
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
-                        android:text="TextView"
-                        android:textAlignment="center"
                         android:elevation="10dp"
-                        android:textColor="@color/colorWhite"
+                        android:shadowColor="@android:color/background_dark"
+                        android:shadowRadius="3"
+                        android:text="TextView"
 
-                        />
+                        android:textAlignment="center"
+                        android:textColor="@color/colorMainBackground" />
 
                     <ProgressBar
                         android:id="@+id/budgetBar"
+                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
                         android:layout_width="fill_parent"
                         android:layout_height="25dp"
-                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+
+                        android:background="#555555"
+                        android:backgroundTintMode="src_in"
+                        android:indeterminateTint="@android:color/darker_gray"
+                        android:indeterminateTintMode="src_in"
                         android:max="100"
                         android:progress="100"
-                        android:progressDrawable="@xml/progress"
-
-                        />
+                        android:progressBackgroundTint="#555555"
+                        android:progressDrawable="@xml/progress" />
 
                 </RelativeLayout>
 

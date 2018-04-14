@@ -90,6 +90,9 @@ public class NewExpensesActivity extends AppCompatActivity {
         DB_Expenses = new DBHelper_Expenses(this);
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
+        Calendar cal = Calendar.getInstance();
+        DateFormat patternDate = new SimpleDateFormat("dd/MM/yyyy");
+
         // Données à entrer
         expenseName = findViewById(R.id.expenseName);
         expenseCategory = findViewById(R.id.expenseCategory);
@@ -133,7 +136,7 @@ public class NewExpensesActivity extends AppCompatActivity {
             expenseCategory.getEditText().setText(tmpCategorie);
         }
         else{
-            currentDate = MainActivity.getCurrentDate(getApplicationContext());
+            currentDate = patternDate.format(cal.getTime());
             expenseDate.getEditText().setText(MainActivity.getCurrentDate(getApplicationContext()));
         }
 

@@ -2,7 +2,6 @@ package projet.ift2905.budgetocracy;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,8 +9,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Color;
-import android.net.sip.SipSession;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -27,17 +24,11 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RadioButton;
-import android.widget.ProgressBar;
-import android.widget.NumberPicker;
-import android.widget.RadioButton;
-import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -77,13 +68,17 @@ class EnumSort{
 }
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    public SharedPreferences prefs;
 
     //RECHERCHE
     ListView mListView;
     TextView mEmptyView;
     Cursor cursor;
+    public EnumSort mSort;
     private CustomAdapter customAdapter;
-    public SharedPreferences prefs;
+    private RadioButton mButtonDate;
+    private RadioButton mButtonAmount;
+    private RadioButton mButtonName;
 
     // INTERFACE
     private BottomNavigationViewEx mBottomBar; // Menu de l'écran principal
@@ -97,9 +92,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     ListView mListViewBudget;
     Cursor cursorBudget;
     private CustomAdapterMainBudget customAdapterBudget;
-
-
-
 
     final String[] PERMISSIONS = {Manifest.permission.CAMERA,
                                   Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -188,7 +180,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         // Barre de navigation (en bas)
-        mBottomBar = findViewById(R.id.menuBar);
         mBottomBar.setActivated(true);
         mBottomBar.enableItemShiftingMode(false);
         mBottomBar.enableAnimation(false);
@@ -231,32 +222,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         // Affichage du menu latéral gauche
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-    }
 
+        showDBexpense = findViewById(R.id.displayDB_expense);
+        showDBexpense.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showMessage("Base de données - Dépenses :", DB_Expenses.getAllStringData());
+            }
+        });
+        showDBbudget = findViewById(R.id.displayDB_budget);
+        showDBbudget.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showMessage("Base de données - Budget :", DB_Budget.getAllStringData());
+            }
+        });
+    }
 
     // Reactualise l'affichage de la liste de Budgets quand on revient à la mainActivity
     @Override
     protected void onResume(){
         super.onResume();
-        cursorBudget = DB_Budget.getAllData();
-
-
-        mListViewBudget = findViewById(R.id.lstBudget);
-        customAdapterBudget = new CustomAdapterMainBudget(this,cursorBudget);
-        mListViewBudget.setAdapter((ListAdapter) customAdapterBudget);
-
-
-
+        updateMainListBudget();
     }
-
 
     // Récupère les données attendues d'une activité selon le "requestCode"
     @Override
@@ -276,12 +268,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             case REQUEST_EXPENSE_DATA:
                 if (resultCode == RESULT_OK && data != null) {
-                    Toast.makeText(getApplicationContext(), R.string.successful_expense_add, Toast.LENGTH_SHORT).show();
+                    Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_expense_add, Snackbar.LENGTH_SHORT).show();
                     String[] dataToAdd = data.getStringArrayExtra("dataToSave");
 
                     Integer budgetID = Integer.valueOf(dataToAdd[1]);
+                    String expenseMonth = dataToAdd[3].split("/")[1];
+                    System.out.println("---------------- "+expenseMonth);
 
-                    DB_Budget.updateRemainingAmount(budgetID, Float.valueOf(dataToAdd[2]));
+                    if(isSameMonthAsCurrent(expenseMonth)){
+                        DB_Budget.substractRemainingAmount(budgetID, Float.valueOf(dataToAdd[2]));
+                    }
                     DB_Expenses.insertDataName(dataToAdd[0], budgetID, Float.valueOf(dataToAdd[2]), dataToAdd[3]);
                 }
                 break;
@@ -289,7 +285,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             case REQUEST_MODIFICATION_EXPENSE_DATA:
                 if (resultCode == RESULT_OK && data !=null){
-                    Toast.makeText(getApplicationContext(), R.string.successful_expense_modification, Toast.LENGTH_SHORT).show();
+                    Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_expense_modification, Snackbar.LENGTH_SHORT).show();
                     String[] dataToModify = data.getStringArrayExtra("dataToSave");
                     String idExpense = data.getStringExtra("idExpenseToModify");
 
@@ -312,6 +308,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         String today = df.format(cal.getTime());
         String resetDay = "01/"+ monthyear.format(nextMonth.getTime());
+
+        // Si le jour de reset prochain n'est pas défini, l'ajouter dans les préférences
+        if(!prefs.contains("nextResetDate")){
+            edit.putString("nextResetDate", resetDay);
+            edit.apply();
+        }
         String nextResetDate = prefs.getString("nextResetDate", resetDay);
 
         Date dToday = df.parse(today);
@@ -319,6 +321,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         if (dToday.compareTo(dNextResetDay) > 0){ // Si le jour courant dépasse la date de reset, alors faire le reset et calculer la prochaine date de reset
             DB_Budget.resetRemaining();
+            DB_Budget.updateRemaining(DB_Expenses.getAllData());
+            updateMainListBudget();
             Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.monthly_reset_process, Snackbar.LENGTH_LONG).show();
 
             // Défini la prochaine date de reset
@@ -432,25 +436,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
 
         // Associate searchable configuration with the SearchView
-        SearchManager searchManager =
-                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
-        final SearchView mSearchView =
-                (SearchView) menu.findItem(R.id.search).getActionView();
-        mSearchView.setSearchableInfo(
-                searchManager.getSearchableInfo(getComponentName()));
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        final SearchView mSearchView = (SearchView) menu.findItem(R.id.search).getActionView();
+        mSearchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
 
         // Retire la barre en dessous de la recherche
-        int searchPlateId = mSearchView.getContext().getResources()
-                .getIdentifier("android:id/search_plate", null, null);
+        int searchPlateId = mSearchView.getContext().getResources().getIdentifier("android:id/search_plate", null, null);
         View searchPlateView = mSearchView.findViewById(searchPlateId);
-
-        SegmentedGroup mSegGroup = findViewById(R.id.segGroupResearch);
-        mSegGroup.setTintColor(getResources().getColor(R.color.colorPrimary));
 
         SegmentedGroup mSegGroup = findViewById(R.id.segGroupResearch);
         mSegGroup.setTintColor(getResources().getColor(R.color.colorPrimary));
@@ -461,24 +457,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         mSearchView.setQueryHint(getResources().getString(R.string.research));
-        mEmptyView =  findViewById(R.id.txtName);
-        mListView = findViewById(R.id.lstExpenses);
-
         customAdapter = new CustomAdapter(this,cursor);
 
         mListView.setAdapter((ListAdapter) customAdapter);
         mListView.setEmptyView(mEmptyView);
-        mListView.setVisibility(View.GONE);
 
-        final RadioButton mButtonDate =  findViewById(R.id.buttonSortDate);
-        final RadioButton mButtonAmount = findViewById(R.id.buttonSortAmount);
-        final RadioButton mButtonName = findViewById(R.id.buttonSortName);
+        setResearchVisibility(false); // Cache les elements de recherche
 
-        mButtonDate.setVisibility(View.GONE);
-        mButtonAmount.setVisibility(View.GONE);
-        mButtonName.setVisibility(View.GONE);
-
-        final EnumSort mSort = new EnumSort(typeSort.sortByName);
+        mSort = new EnumSort(typeSort.sortByName);
         mButtonName.setChecked(true);
 
         // On entre dans la recherche : Gestion recherche + Trie selon le bouton choisi
@@ -498,8 +484,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onClick(View v) {
                         mSort.changeSort(typeSort.sortByAmount);
-                        cursor= DB_Expenses.getExpenseListByKeyword(query,mSort);
-                        customAdapter.changeCursor(cursor);
+                        updateResearchList(query);
                     }
                 });
 
@@ -507,8 +492,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onClick(View v) {
                         mSort.changeSort(typeSort.sortByDate);
-                        cursor= DB_Expenses.getExpenseListByKeyword(query,mSort);
-                        customAdapter.changeCursor(cursor);
+                        updateResearchList(query);
                     }
                 });
 
@@ -516,8 +500,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onClick(View v) {
                         mSort.changeSort(typeSort.sortByName);
-                        cursor= DB_Expenses.getExpenseListByKeyword(query,mSort);
-                        customAdapter.changeCursor(cursor);
+                        updateResearchList(query);
                     }
                 });
                 return false;
@@ -525,14 +508,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             @Override
             public boolean onQueryTextChange(final String newText) {
-                mListView.setVisibility(View.VISIBLE);
-                mListView.setDivider(null);
-                mListView.setDividerHeight(2);
-                mButtonDate.setVisibility(View.VISIBLE);
-                mButtonAmount.setVisibility(View.VISIBLE);
-                mButtonName.setVisibility(View.VISIBLE);
-
-                mBottomBar.setVisibility(View.GONE);
+                setResearchVisibility(true);
+                setMainViewVisibility(false);
 
                 cursor = DB_Expenses.getExpenseListByKeyword(newText,mSort);
 
@@ -545,8 +522,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onClick(View v) {
                         mSort.changeSort(typeSort.sortByAmount);
-                        cursor = DB_Expenses.getExpenseListByKeyword(newText,mSort);
-                        customAdapter.changeCursor(cursor);
+                        updateResearchList(newText);
                     }
                 });
 
@@ -554,8 +530,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onClick(View v) {
                         mSort.changeSort(typeSort.sortByDate);
-                        cursor= DB_Expenses.getExpenseListByKeyword(newText,mSort);
-                        customAdapter.changeCursor(cursor);
+                        updateResearchList(newText);
                     }
                 });
 
@@ -563,8 +538,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onClick(View v) {
                         mSort.changeSort(typeSort.sortByName);
-                        cursor= DB_Expenses.getExpenseListByKeyword(newText,mSort);
-                        customAdapter.changeCursor(cursor);
+                        updateResearchList(newText);
                     }
                 });
                 return false;
@@ -574,15 +548,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mSearchView.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
-                mListView.setVisibility(View.GONE);
-                mButtonDate.setVisibility(View.GONE);
-                mButtonAmount.setVisibility(View.GONE);
-                mButtonName.setVisibility(View.GONE);
-
+                setResearchVisibility(false);
                 // Réactivation ecran principal
-                mBottomBar.setVisibility(View.VISIBLE);
-                showDBbudget.setVisibility(View.VISIBLE);
-                showDBexpense.setVisibility(View.VISIBLE);
+                setMainViewVisibility(true);
                 return false;
             }
         });
@@ -613,10 +581,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 break;
 
                             case 1: // Suppression
-                                DB_Expenses.deleteData(strId);
-                                Snackbar.make(findViewById(R.id.myCoordinatorLayout),R.string.successful_expense_deleted, Snackbar.LENGTH_SHORT).show();
-                                cursor = DB_Expenses.getExpenseListByKeyword("",mSort);
-                                customAdapter.changeCursor(cursor);
+                                Cursor expenseData = DB_Expenses.getExpense(strId); // Toutes les informations de la dépense sélectionné
+
+                                if(expenseData != null){
+                                    String expenseDate = expenseData.getString(4).split("/")[1];
+                                    if(isSameMonthAsCurrent(expenseDate)){
+                                        // Mets à jour le reste du budget associé à la dépense si cette dernière et enregistré pour le mois courant
+                                        DB_Budget.increaseRemainingAmount(expenseData.getInt(2), expenseData.getFloat(3));
+                                    }
+                                    DB_Expenses.deleteData(strId);
+                                    updateMainListBudget();
+                                    Snackbar.make(findViewById(R.id.myCoordinatorLayout),R.string.successful_expense_deleted, Snackbar.LENGTH_SHORT).show();
+                                }
+
+                                // Refresh la liste de dépenses dans la recherche
+                                updateResearchList("");
+
+                                // Refresh la liste de budgets
+                                updateMainListBudget();
                                 break;
 
                             default:
@@ -628,6 +610,49 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
         return true;
+    }
+
+    public static boolean isSameMonthAsCurrent(String month){
+        Calendar cal = Calendar.getInstance();
+        DateFormat patternYear = new SimpleDateFormat("M");
+        String currentMonth = patternYear.format(cal.getTime());
+        if(currentMonth.equals(NewExpensesActivity.fixDate(month))){
+            return true;
+        }
+        return false;
+    }
+
+    public void updateMainListBudget(){
+        cursorBudget = DB_Budget.getAllData();
+        customAdapterBudget.changeCursor(cursorBudget);
+    }
+
+    public void updateResearchList(String search){
+        cursor = DB_Expenses.getExpenseListByKeyword(search, mSort);
+        customAdapter.changeCursor(cursor);
+    }
+
+    public void setResearchVisibility(boolean shown){
+        int visibility = shown ? View.VISIBLE : View.GONE;
+
+        mListView.setVisibility(visibility);
+        mButtonDate.setVisibility(visibility);
+        mButtonAmount.setVisibility(visibility);
+        mButtonName.setVisibility(visibility);
+
+        if(shown){
+            mListView.setDivider(null);
+            mListView.setDividerHeight(2);
+        }
+    }
+
+    public void setMainViewVisibility(boolean shown){
+        int visibility = shown ? View.VISIBLE : View.GONE;
+
+        mBottomBar.setVisibility(visibility);
+        showDBbudget.setVisibility(visibility);
+        showDBexpense.setVisibility(visibility);
+        mListViewBudget.setVisibility(visibility);
     }
 
     @Override
@@ -673,7 +698,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return super.onOptionsItemSelected(item);
     }
 
-*/
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -702,6 +726,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     public void onClick(DialogInterface dialog, int which) {
                         DB_Expenses.deleteDataBase();
                         DB_Budget.deleteDataBase();
+                        updateMainListBudget();
                         Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_erased_data, Snackbar.LENGTH_SHORT).show();
                     }
                 });

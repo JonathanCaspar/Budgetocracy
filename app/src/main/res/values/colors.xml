@@ -6,4 +6,7 @@
     <color name="colorMainBackground">#FFFFFF</color>
     <color name="colorTroisieme">#349876</color>
     <color name="colorGraph">#E5F6F0</color>
+    <color name="progress_background">#555555</color>
+    <color name="progress_neutral">#01579b</color>
+    <color name="progress_negative">#b71c1c</color>
 </resources>

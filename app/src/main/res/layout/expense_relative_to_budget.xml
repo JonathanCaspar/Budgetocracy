@@ -10,7 +10,7 @@
         android:background="?attr/colorPrimary"
         app:theme="@style/AppTheme.AppBarOverlay"
         app:popupTheme="@style/AppTheme.PopupOverlay"
-        app:titleTextColor="@color/colorWhite"/>
+        app:titleTextColor="@color/colorMainBackground"/>
 
 
     <ListView

@@ -63,8 +63,8 @@ public class NewCategoriesActivity extends AppCompatActivity {
                 if (checkInputValidity()) {
                     //Ajout de la dépense à la base de données
                     long id = dbHelper_budget.insertDataName(categoryName.getEditText().getText().toString(),
-                            Integer.valueOf(categoryBudget.getEditText().getText().toString()),
-                            Integer.valueOf(categoryBudget.getEditText().getText().toString()));
+                            Float.valueOf(categoryBudget.getEditText().getText().toString()),
+                            Float.valueOf(categoryBudget.getEditText().getText().toString()));
 
                     Toast.makeText(getApplicationContext(), R.string.successful_category_add, Toast.LENGTH_LONG).show();
 
@@ -156,7 +156,7 @@ public class NewCategoriesActivity extends AppCompatActivity {
             categoryBudget.setErrorEnabled(true);
             allGood = false;
         }
-        else if (Integer.valueOf(budget) <= 0 ){
+        else if (Float.valueOf(budget) <= 0 ){
             categoryBudget.setError(getString(R.string.negative_amount_error));
             categoryBudget.setErrorEnabled(true);
             allGood = false;

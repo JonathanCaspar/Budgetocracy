@@ -109,9 +109,14 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
         return true;
     }
 
-    public void updateRemainingAmount(Integer ID, Float toSubstract){
+    public void substractRemainingAmount(Integer ID, Float toSubstract){
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("UPDATE "+TABLE_NAME+" SET "+COL_BUDGET_3+"="+COL_BUDGET_3+"-"+toSubstract+" WHERE _id="+ID);
+    }
+
+    public void increaseRemainingAmount(Integer ID, Float toSubstract){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("UPDATE "+TABLE_NAME+" SET "+COL_BUDGET_3+"="+COL_BUDGET_3+"+"+toSubstract+" WHERE _id="+ID);
     }
 
     public Integer deleteData (String id) {
@@ -151,5 +156,17 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("UPDATE "+TABLE_NAME+" SET "+COL_BUDGET_3+"="+COL_BUDGET_2);
 
+    }
+
+    public void updateRemaining(Cursor expenses) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        // Mets à jour les remainings pour les dépenses ayant le même mois courant
+        while (expenses.moveToNext()) {
+            String expenseDate = expenses.getString(4).split("/")[1];
+            if (MainActivity.isSameMonthAsCurrent(expenseDate)){
+                db.execSQL("UPDATE "+TABLE_NAME+" SET "+COL_BUDGET_3+"="+COL_BUDGET_2+"-"+expenses.getFloat(3)+" WHERE _id="+expenses.getString(2));
+            }
+        }
     }
 }
