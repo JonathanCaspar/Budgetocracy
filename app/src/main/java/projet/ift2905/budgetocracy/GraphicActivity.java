@@ -154,7 +154,7 @@ public class GraphicActivity extends AppCompatActivity {
         barChart.setDrawGridBackground(false);
         barChart.getXAxis().setDrawLabels(false);
 
-        IAxisValueFormatter custom = new MyAxisValueFormatter();
+        IAxisValueFormatter custom = new MyAxisValueFormatter(getApplicationContext());
         YAxis leftAxis = barChart.getAxisLeft();
         leftAxis.setLabelCount(8, false);
         leftAxis.setValueFormatter(custom);
@@ -271,7 +271,7 @@ public class GraphicActivity extends AppCompatActivity {
         }
         else return;
 
-        RadarDataSet set2 = new RadarDataSet(entries2, "Remaining Budget %");
+        RadarDataSet set2 = new RadarDataSet(entries2, getString(R.string.left)+" Budget %");
         set2.setColor(Color.rgb(121, 162, 175));
         set2.setFillColor(Color.rgb(121, 162, 175));
         set2.setDrawFilled(true);

@@ -78,5 +78,12 @@
     <string name="modify">Modifier</string>
     <string name="delete">Supprimer</string>
     <string name="successful_expense_deleted">Dépense supprimée</string>
+    <string name="used">Utilisé</string>
+    <string name="left">Restant</string>
+    <string name="epargne">Epargne</string>
+    <string name="categoryTitle">Dépenses par catégories</string>
+    <string name="totalbudget">Budget Total</string>
+    <string name="nbBudget">Budgets</string>
+    <string name="nbExpenses">Dépenses</string>
 
 </resources>

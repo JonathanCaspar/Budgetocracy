@@ -3,6 +3,7 @@ package projet.ift2905.budgetocracy;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.preference.PreferenceManager;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
@@ -22,6 +23,7 @@ import com.github.mikephil.charting.utils.ColorTemplate;
 import org.w3c.dom.Text;
 
 import java.util.ArrayList;
+import java.util.prefs.Preferences;
 
 /**
  * Created by Max on 2018-03-27.
@@ -47,6 +49,7 @@ public class CustomAdapterGraph extends CursorAdapter {
 
         categoryText = (TextView) view.findViewById(R.id.textView5);
         categoryText.setText(cursor.getString(1));
+        String currency = PreferenceManager.getDefaultSharedPreferences(context).getString("currency","$");
 
         // Piechart configuration
         pieChart = (PieChart) view.findViewById(R.id.piechart_1);
@@ -69,9 +72,10 @@ public class CustomAdapterGraph extends CursorAdapter {
         float budget = Float.parseFloat(cursor.getString(2));
         float remaining = Float.parseFloat(cursor.getString(3));
         float usedBudget = budget - remaining;
-        SpannableString s = new SpannableString("Budget: "+budget+"$"+"\nUsed: "+usedBudget+"$"+"\nLeft: "+remaining+"$");
+
+        SpannableString s = new SpannableString("Budget: "+budget+currency+"\n"+context.getString(R.string.used)+": "+usedBudget+currency+"\n"+context.getString(R.string.left) +": "+remaining+currency);
         s.setSpan(new RelativeSizeSpan(0.8f), 0, s.length(), 0);
-        s.setSpan(new ForegroundColorSpan(Color.rgb(245,58,58)),s.length()-1-Float.toString(remaining).length(), s.length(), 0);
+        s.setSpan(new ForegroundColorSpan(Color.rgb(16,176,115)),s.length()-1-Float.toString(remaining).length(), s.length(), 0);
         pieChart.setCenterText(s);
 
         // Add the values to the piechart
@@ -85,8 +89,8 @@ public class CustomAdapterGraph extends CursorAdapter {
 
         // Piechart bar colors
         ArrayList colors = new ArrayList();
-        colors.add(0xFF10B073); // VERT
-        colors.add(Color.RED); // ROUGE
+        colors.add(Color.RED);
+        colors.add(0xFF10B073);
         dataSet.setColors(colors);
 
         PieData data = new PieData((dataSet));
