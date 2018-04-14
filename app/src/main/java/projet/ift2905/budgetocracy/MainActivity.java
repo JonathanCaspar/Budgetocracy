@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.sip.SipSession;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -28,9 +29,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.RadioButton;
+import android.widget.ProgressBar;
 import android.widget.NumberPicker;
 import android.widget.RadioButton;
 import android.widget.RelativeLayout;
@@ -74,6 +78,7 @@ class EnumSort{
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
+    //RECHERCHE
     ListView mListView;
     TextView mEmptyView;
     Cursor cursor;
@@ -87,6 +92,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private TextView navHeaderDate;
     private Button showDBexpense;
     private Button showDBbudget;
+
+    //LISTE BUDGET MAIN
+    ListView mListViewBudget;
+    Cursor cursorBudget;
+    private CustomAdapterMainBudget customAdapterBudget;
+
+
+
 
     final String[] PERMISSIONS = {Manifest.permission.CAMERA,
                                   Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -105,9 +118,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         DB_Expenses = new DBHelper_Expenses(this);
         DB_Budget = new DBHelper_Budget(this);
-        System.out.print(DB_Budget.getAllStringData());
 
-        /* TEST DB AFFICHAGE */
+        View view = this.getWindow().getDecorView();
+        view.setBackgroundColor(getResources().getColor(R.color.colorMainBackground));
+
+
         showDBexpense = findViewById(R.id.displayDB_expense);
         showDBexpense.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -123,8 +138,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
-        View view = this.getWindow().getDecorView();
-        view.setBackgroundColor(getResources().getColor(R.color.colorMainBackground));
+
+
+        // Gère la liste des budgets apparaissant dans le menu principal
+        cursorBudget = DB_Budget.getAllData();
+        mListViewBudget = findViewById(R.id.lstBudget);
+        customAdapterBudget = new CustomAdapterMainBudget(this,cursorBudget);
+        mListViewBudget.setAdapter((ListAdapter) customAdapterBudget);
+        mListViewBudget.setDivider(null);
+
+        // Quand on clique sur une des dépenses de la liste, on redirige vers la page pour la modifier
+        mListViewBudget.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                String strId = String.valueOf(id);
+
+                // On appelle l'activité pour visualiser la liste des dépenses liée au budget
+                Intent seeExpensesRelativeToBudget = new Intent(MainActivity.this, ExpensesRelativeToBudget.class);
+                seeExpensesRelativeToBudget.putExtra("idBudget", strId);
+                startActivity(seeExpensesRelativeToBudget);
+
+
+            }
+        });
+
 
         // Accès à tous les Views
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -151,6 +188,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         // Barre de navigation (en bas)
+        mBottomBar = findViewById(R.id.menuBar);
         mBottomBar.setActivated(true);
         mBottomBar.enableItemShiftingMode(false);
         mBottomBar.enableAnimation(false);
@@ -173,7 +211,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             // Sinon: les demander
                             ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS, PERMISSION_ALL);
                             return false;
-
                         }
 
                     case R.id.menu_categories:
@@ -194,12 +231,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         // Affichage du menu latéral gauche
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
+
+
+    // Reactualise l'affichage de la liste de Budgets quand on revient à la mainActivity
+    @Override
+    protected void onResume(){
+        super.onResume();
+        cursorBudget = DB_Budget.getAllData();
+
+
+        mListViewBudget = findViewById(R.id.lstBudget);
+        customAdapterBudget = new CustomAdapterMainBudget(this,cursorBudget);
+        mListViewBudget.setAdapter((ListAdapter) customAdapterBudget);
+
+
+
+    }
+
 
     // Récupère les données attendues d'une activité selon le "requestCode"
     @Override
@@ -300,7 +357,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    // Vérification si les permissions actuelles sont suffisantes
+    //Vérification si les permissions actuelles sont suffisantes
     public static boolean hasPermissions(Context context, String... permissions) {
         if (context != null && permissions != null) {
             for (String permission : permissions) {
@@ -391,6 +448,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int searchPlateId = mSearchView.getContext().getResources()
                 .getIdentifier("android:id/search_plate", null, null);
         View searchPlateView = mSearchView.findViewById(searchPlateId);
+
+        SegmentedGroup mSegGroup = findViewById(R.id.segGroupResearch);
+        mSegGroup.setTintColor(getResources().getColor(R.color.colorPrimary));
 
         SegmentedGroup mSegGroup = findViewById(R.id.segGroupResearch);
         mSegGroup.setTintColor(getResources().getColor(R.color.colorPrimary));
@@ -613,6 +673,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return super.onOptionsItemSelected(item);
     }
 
+*/
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

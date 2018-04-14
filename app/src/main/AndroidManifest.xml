@@ -50,6 +50,13 @@
             android:label="@string/categorieNameActivity">
         </activity>
 
+        <activity
+            android:name=".ExpensesRelativeToBudget"
+            android:parentActivityName=".MainActivity"
+            android:label="Dépenses liées au Budget : ">
+
+        </activity>
+
         <activity android:name=".CameraActivity"
             android:label="Caméra"
             android:parentActivityName=".MainActivity"

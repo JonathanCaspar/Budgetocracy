@@ -139,6 +139,8 @@ public class NewExpensesActivity extends AppCompatActivity {
 
         // Choix de catégorie
         expenseCategory.getEditText().setOnClickListener(new View.OnClickListener() {
+            private AlertDialog alertDialog = null;
+
             @Override
             public void onClick(View v) {
                 //Récupère la liste des budgets
@@ -500,6 +502,7 @@ public class NewExpensesActivity extends AppCompatActivity {
 
             Toast.makeText(getApplicationContext(), String.format("Analyse effectuée en %.1f s", (float) elapsedTime), Toast.LENGTH_SHORT).show();
         }
+
     }
 
     @Override

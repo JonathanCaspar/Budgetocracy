@@ -11,6 +11,17 @@
 
     <!--android:layout_below = "@id/toolbarPosition"-->
 
+    <ListView
+        android:id="@+id/lstBudget"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="280dp"
+        android:layout_marginBottom="60dp" />
+
+
+
     <info.hoang8f.android.segmented.SegmentedGroup xmlns:segmentedgroup="http://schemas.android.com/apk/res-auto"
         android:id="@+id/segGroupResearch"
         android:layout_width="fill_parent"
@@ -52,33 +63,7 @@
 
 
     </info.hoang8f.android.segmented.SegmentedGroup>
-    <Button
-        android:id="@+id/displayDB_expense"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="179dp"
-        android:text="Afficher la DB Expense"
-        android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/menuBar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/include"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
 
-    <Button
-        android:id="@+id/displayDB_budget"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/displayDB_expense"
-        android:layout_below="@+id/displayDB_expense"
-        android:layout_marginTop="32dp"
-        android:text="Afficher la DB budget"
-        android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/menuBar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/include"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
 
    <ListView
        android:id="@+id/lstExpenses"
@@ -88,5 +73,37 @@
        android:layout_alignParentTop="true"
        android:layout_marginTop="100dp"
        android:layout_marginBottom="5dp" />
+
+
+   <Button
+       android:id="@+id/displayDB_expense"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_alignParentTop="true"
+       android:layout_centerHorizontal="true"
+       android:layout_marginTop="85dp"
+       android:text="Afficher la DB Expense"
+       android:visibility="visible"
+       app:layout_constraintBottom_toTopOf="@+id/menuBar"
+       app:layout_constraintEnd_toEndOf="parent"
+       app:layout_constraintStart_toStartOf="@+id/include"
+       app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
+
+   <Button
+       android:id="@+id/displayDB_budget"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_alignStart="@+id/displayDB_expense"
+       android:layout_below="@+id/displayDB_expense"
+       android:layout_marginTop="5dp"
+       android:text="Afficher la DB budget"
+       android:visibility="visible"
+       app:layout_constraintBottom_toTopOf="@+id/menuBar"
+       app:layout_constraintEnd_toEndOf="parent"
+       app:layout_constraintStart_toStartOf="@+id/include"
+       app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
+
+
+
 
 </RelativeLayout>

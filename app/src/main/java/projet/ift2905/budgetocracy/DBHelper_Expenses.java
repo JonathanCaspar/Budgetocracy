@@ -96,6 +96,9 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
         db.execSQL("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='expenses_table'"); //reset the primary keys
     }
 
+
+
+
     public Cursor getExpenseListByKeyword (String search, EnumSort sort){
         //Open connection to read only
         SQLiteDatabase db = this.getReadableDatabase();
@@ -256,16 +259,16 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
     }
 
 
-    public String getStringWithID(String id) {
-        //Open connection to read only
+    public Cursor getExpensesAssociateToBudget (String idBudget){
         SQLiteDatabase db = this.getReadableDatabase();
-        String selectQuery = "SELECT " +
-                DBHelper_Expenses.COL_EXPENSES_2 +
-                " FROM " + DBHelper_Expenses.TABLE_NAME  +
-                " WHERE _id = " + id
+        String selectQuery="";
+
+        selectQuery = "SELECT * FROM " + DBHelper_Expenses.TABLE_NAME  +
+                " WHERE "+ DBHelper_Expenses.COL_EXPENSES_3 +"=" + idBudget
         ;
-        //return db.execSQL(selectQuery);
-        Cursor cursor =  db.rawQuery(selectQuery, null);
+
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
 
         if (cursor == null) {
             return null;
@@ -273,6 +276,12 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
             cursor.close();
             return null;
         }
-        return cursor.getString(0);
+        return cursor;
+
+
+
     }
+
+
+
 }
