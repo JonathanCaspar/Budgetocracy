@@ -122,6 +122,7 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
     public void deleteDataBase() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DELETE FROM "+TABLE_NAME); //delete all rows in a table
+        db.execSQL("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='budget_table'"); //reset the primary keys
     }
 
     public String getStringBudgetWithID (String search) {
@@ -146,6 +147,9 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
 
     }
 
+    public void resetRemaining() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("UPDATE "+TABLE_NAME+" SET "+COL_BUDGET_3+"="+COL_BUDGET_2);
 
-
+    }
 }

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.media.Image;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -17,6 +18,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.w3c.dom.Text;
@@ -33,6 +35,7 @@ public class NewCategoriesActivity extends AppCompatActivity {
     private TextInputLayout categoryBudget;
     private ImageView categoryHint;
     private Button addCategory;
+    private TextView currency;
 
     private final int REQUEST_NEW_CATEGORY = 101;
 
@@ -50,6 +53,9 @@ public class NewCategoriesActivity extends AppCompatActivity {
         categoryBudget = findViewById(R.id.categoryBudget);
         categoryHint = findViewById(R.id.categoryHint);
         addCategory = findViewById(R.id.addCategory);
+        currency = findViewById(R.id.currencyNewCategory);
+
+        currency.setText(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("currency","$"));
 
         addCategory.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -116,13 +122,14 @@ public class NewCategoriesActivity extends AppCompatActivity {
                 };
                 //Crée la fenêtre de base
                 AlertDialog.Builder builder = new AlertDialog.Builder(NewCategoriesActivity.this);
-                builder.setTitle(R.string.pick_category);
+                builder.setTitle(R.string.categories_sample);
                 builder.setItems(listCategory, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         categoryName.getEditText().setText(listCategory[which]);
                     }
                 });
+                builder.setNegativeButton(R.string.cancel ,null);
                 builder.setCancelable(true);
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();

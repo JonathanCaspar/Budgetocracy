@@ -2,6 +2,7 @@ package projet.ift2905.budgetocracy;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -30,7 +31,9 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.NumberPicker;
 import android.widget.RadioButton;
+import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,7 +41,9 @@ import android.widget.Toast;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import info.hoang8f.android.segmented.SegmentedGroup;
@@ -77,10 +82,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     // INTERFACE
     private BottomNavigationViewEx mBottomBar; // Menu de l'écran principal
-    private Button showDBexpense;
-    private Button showDBbudget;
     private DBHelper_Expenses DB_Expenses;
     private DBHelper_Budget DB_Budget;
+    private TextView navHeaderDate;
+    private Button showDBexpense;
+    private Button showDBbudget;
 
     final String[] PERMISSIONS = {Manifest.permission.CAMERA,
                                   Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -99,35 +105,52 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         DB_Expenses = new DBHelper_Expenses(this);
         DB_Budget = new DBHelper_Budget(this);
+        System.out.print(DB_Budget.getAllStringData());
 
-        View view = this.getWindow().getDecorView();
-        view.setBackgroundColor(getResources().getColor(R.color.colorMainBackground));
-
-
+        /* TEST DB AFFICHAGE */
         showDBexpense = findViewById(R.id.displayDB_expense);
-        showDBexpense.setVisibility(View.GONE);
-        /*showDBexpense.setOnClickListener(new View.OnClickListener() {
+        showDBexpense.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showMessage("Base de données - Dépenses :", DB_Expenses.getAllStringData());
             }
-        });*/
+        });
         showDBbudget = findViewById(R.id.displayDB_budget);
-        showDBbudget.setVisibility(View.GONE);
-        /*showDBbudget.setOnClickListener(new View.OnClickListener() {
+        showDBbudget.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showMessage("Base de données - Budget :", DB_Budget.getAllStringData());
             }
-        });*/
+        });
 
-        // Toolbar (en haut)
+        View view = this.getWindow().getDecorView();
+        view.setBackgroundColor(getResources().getColor(R.color.colorMainBackground));
+
+        // Accès à tous les Views
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navHeaderDate = navigationView.getHeaderView(0).findViewById(R.id.nav_date);
+        mBottomBar = findViewById(R.id.menuBar);
+
+        try {
+            dailyUpdate();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        // Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(getCurrentDate(getApplicationContext()));
+
+        String currentDate = getCurrentDate(getApplicationContext());
+        getSupportActionBar().setTitle(currentDate);
+
+        Calendar cal = Calendar.getInstance();
+        if (navHeaderDate != null){
+            navHeaderDate.setText(getDayOfWeek(cal.get(cal.DAY_OF_WEEK), getApplicationContext()) + currentDate);
+        }
 
         // Barre de navigation (en bas)
-        mBottomBar = findViewById(R.id.menuBar);
         mBottomBar.setActivated(true);
         mBottomBar.enableItemShiftingMode(false);
         mBottomBar.enableAnimation(false);
@@ -150,6 +173,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             // Sinon: les demander
                             ActivityCompat.requestPermissions(MainActivity.this, PERMISSIONS, PERMISSION_ALL);
                             return false;
+
                         }
 
                     case R.id.menu_categories:
@@ -170,13 +194,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
 
         // Affichage du menu latéral gauche
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
 
@@ -202,6 +223,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     String[] dataToAdd = data.getStringArrayExtra("dataToSave");
 
                     Integer budgetID = Integer.valueOf(dataToAdd[1]);
+
                     DB_Budget.updateRemainingAmount(budgetID, Float.valueOf(dataToAdd[2]));
                     DB_Expenses.insertDataName(dataToAdd[0], budgetID, Float.valueOf(dataToAdd[2]), dataToAdd[3]);
                 }
@@ -211,14 +233,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case REQUEST_MODIFICATION_EXPENSE_DATA:
                 if (resultCode == RESULT_OK && data !=null){
                     Toast.makeText(getApplicationContext(), R.string.successful_expense_modification, Toast.LENGTH_SHORT).show();
-                    String[] dataToModify = data.getStringArrayExtra("dataToModify");
-                    String idExpense = data.getStringExtra("IdExpense");
+                    String[] dataToModify = data.getStringArrayExtra("dataToSave");
+                    String idExpense = data.getStringExtra("idExpenseToModify");
 
                     Integer budgetID = Integer.valueOf(dataToModify[1]);
                     DB_Expenses.updateData(idExpense,dataToModify[0],budgetID,Float.valueOf(dataToModify[2]), dataToModify[3]);
-
                 }
+                break;
+        }
+    }
 
+    public void dailyUpdate() throws ParseException {
+        SharedPreferences.Editor edit = prefs.edit();
+        Calendar cal = Calendar.getInstance();
+
+        Calendar nextMonth = Calendar.getInstance();
+        nextMonth.add(Calendar.MONTH, 1); // Prochain mois
+
+        DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
+        DateFormat monthyear = new SimpleDateFormat("MM/yyyy");
+
+        String today = df.format(cal.getTime());
+        String resetDay = "01/"+ monthyear.format(nextMonth.getTime());
+        String nextResetDate = prefs.getString("nextResetDate", resetDay);
+
+        Date dToday = df.parse(today);
+        Date dNextResetDay = df.parse(nextResetDate);
+
+        if (dToday.compareTo(dNextResetDay) > 0){ // Si le jour courant dépasse la date de reset, alors faire le reset et calculer la prochaine date de reset
+            DB_Budget.resetRemaining();
+            Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.monthly_reset_process, Snackbar.LENGTH_LONG).show();
+
+            // Défini la prochaine date de reset
+            edit.putString("nextResetDate", "01/"+ monthyear.format(nextMonth.getTime()));
+            edit.apply();
         }
     }
 
@@ -252,7 +300,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    //Vérification si les permissions actuelles sont suffisantes
+    // Vérification si les permissions actuelles sont suffisantes
     public static boolean hasPermissions(Context context, String... permissions) {
         if (context != null && permissions != null) {
             for (String permission : permissions) {
@@ -304,6 +352,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    public static String getDayOfWeek(int nb, Context ctx){
+        switch (nb) {
+            case 1:
+                return " " + ctx.getString(R.string.dimanche) + " ";
+            case 2:
+                return " " + ctx.getString(R.string.lundi) + " ";
+            case 3:
+                return " " + ctx.getString(R.string.mardi) + " ";
+            case 4:
+                return " " + ctx.getString(R.string.mercredi) + " ";
+            case 5:
+                return " " + ctx.getString(R.string.jeudi) + " ";
+            case 6:
+                return " " + ctx.getString(R.string.vendredi) + " ";
+            case 7:
+                return " " + ctx.getString(R.string.samedi) + " ";
+            default:
+                return "Error";
+        }
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
@@ -335,8 +404,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mEmptyView =  findViewById(R.id.txtName);
         mListView = findViewById(R.id.lstExpenses);
 
-
-        //cursor = DB_Expenses.getAllData();
         customAdapter = new CustomAdapter(this,cursor);
 
         mListView.setAdapter((ListAdapter) customAdapter);
@@ -346,7 +413,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         final RadioButton mButtonDate =  findViewById(R.id.buttonSortDate);
         final RadioButton mButtonAmount = findViewById(R.id.buttonSortAmount);
         final RadioButton mButtonName = findViewById(R.id.buttonSortName);
-        final String currentSortSetting;
 
         mButtonDate.setVisibility(View.GONE);
         mButtonAmount.setVisibility(View.GONE);
@@ -407,8 +473,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mButtonName.setVisibility(View.VISIBLE);
 
                 mBottomBar.setVisibility(View.GONE);
-                showDBbudget.setVisibility(View.GONE);
-                showDBexpense.setVisibility(View.GONE);
 
                 cursor = DB_Expenses.getExpenseListByKeyword(newText,mSort);
 
@@ -457,6 +521,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 // Réactivation ecran principal
                 mBottomBar.setVisibility(View.VISIBLE);
+                showDBbudget.setVisibility(View.VISIBLE);
+                showDBexpense.setVisibility(View.VISIBLE);
                 return false;
             }
         });
@@ -508,7 +574,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
 
-            case R.id.action_settings:
+            case R.id.currency_settings:
                 final String[] listCurrencies = { "$ - " + getString(R.string.CAD),
                         "€ - " + getString(R.string.EUR),
                         "$ - " + getString(R.string.USD),
@@ -575,7 +641,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     public void onClick(DialogInterface dialog, int which) {
                         DB_Expenses.deleteDataBase();
                         DB_Budget.deleteDataBase();
-                        Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_erased_data, Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_erased_data, Snackbar.LENGTH_SHORT).show();
                     }
                 });
                 builder.show();
@@ -595,4 +661,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
+    public void showMessage(String title, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setCancelable(true);
+        builder.setTitle(title);
+        builder.setMessage(message);
+        builder.show();
+    }
 }

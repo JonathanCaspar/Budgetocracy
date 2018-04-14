@@ -72,11 +72,27 @@
     <string name="ZAR">rand sud africain</string>
     <string name="change_currency">Changer la devise</string>
     <string name="erase_all_data">Suppression de toutes les données</string>
-    <string name="erase_all_data_message">Une suppression des données entrainera la perte irréversible de l\'ensemble de vos dépenses et catégories. \n\nÊtes-vous sûr de vouloir continuer ?</string>
+    <string name="erase_all_data_message">La suppression des données entrainera la perte irréversible de l\'ensemble de vos dépenses et catégories. \n\nÊtes-vous sûr de vouloir continuer ?</string>
     <string name="erase_all">Tout supprimer</string>
     <string name="successful_erased_data">Toutes les données ont été effacées !</string>
     <string name="modify">Modifier</string>
     <string name="delete">Supprimer</string>
     <string name="successful_expense_deleted">Dépense supprimée</string>
+    <string name="reset_day">Changer début du mois</string>
+    <string name="reset_day_title">Premier jour du mois</string>
+    <string name="choose_first_day_of_month">\nSélectionnez la date à laquelle vous souhaitez faire la réinitialisation mensuelle de vos budgets :</string>
+    <string name="new_first_day_of_month1">Vos budgets seront réinitialisés tous les</string>
+    <string name="new_first_day_of_month2">du mois.</string>
+    <string name="dimanche">Dimanche</string>
+    <string name="lundi">Lundi</string>
+    <string name="mardi">Mardi</string>
+    <string name="mercredi">Mercredi</string>
+    <string name="jeudi">Jeudi</string>
+    <string name="vendredi">Vendredi</string>
+    <string name="samedi">Samedi</string>
+    <string name="monthly_reset_process">Réinitialisation mensuelle des budgets en cours ...</string>
+    <string name="each_month">Chaque mois</string>
+    <string name="categories_sample">Exemples de catégories</string>
+
 
 </resources>

@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.ActionBar;
@@ -22,7 +23,9 @@ import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RadioButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
@@ -62,13 +65,17 @@ public class NewExpensesActivity extends AppCompatActivity {
     private TextInputLayout expenseCategory;
     private TextInputLayout expenseDate;
     private TextInputLayout expenseAmount;
+    private EditText expenseAmountValue;
     private SegmentedGroup choixRecurrence;
     private RadioButton uniqueButton;
     private RadioButton recurrenceButton;
     private Button expenseAddButton;
+    private TextView currencyNewAmount;
 
     private int categoryID = -1;
     private final int REQUEST_NEW_CATEGORY = 101;
+
+    private String currentDate;
     private SharedPreferences prefs;
 
     @Override
@@ -87,14 +94,19 @@ public class NewExpensesActivity extends AppCompatActivity {
         expenseName = findViewById(R.id.expenseName);
         expenseCategory = findViewById(R.id.expenseCategory);
         expenseAmount = findViewById(R.id.expenseAmount);
+        expenseAmountValue = findViewById(R.id.expenseAmountValue);
         expenseDate = findViewById(R.id.expenseDate);
         choixRecurrence = findViewById(R.id.choixRecurrence);
         uniqueButton = findViewById(R.id.choix_unique_button);
         recurrenceButton = findViewById(R.id.choix_recurrent_button);
         expenseAddButton = findViewById(R.id.addExpense);
+        currencyNewAmount = findViewById(R.id.currencyNewAmount);
 
         // Changement de couleur choixRecurrence
         choixRecurrence.setTintColor(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorIcons));
+
+        // Affichage de la devise pour le montant
+        currencyNewAmount.setText(prefs.getString("currency","$"));
 
         // Ajout de données via un scan ?
         if (getIntent().getBooleanExtra("requestDataToAPI", false)) { // Scan effectué
@@ -117,10 +129,11 @@ public class NewExpensesActivity extends AppCompatActivity {
 
             expenseName.getEditText().setText(tmpName);
             expenseDate.getEditText().setText(tmpDate);
-            expenseAmount.getEditText().setText(tmpAmount);
+            expenseAmountValue.setText(tmpAmount);
             expenseCategory.getEditText().setText(tmpCategorie);
         }
         else{
+            currentDate = MainActivity.getCurrentDate(getApplicationContext());
             expenseDate.getEditText().setText(MainActivity.getCurrentDate(getApplicationContext()));
         }
 
@@ -179,147 +192,38 @@ public class NewExpensesActivity extends AppCompatActivity {
             }
         });
 
-        // Montant
-        expenseAmount.getEditText().addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                s.append(" " + prefs.getString("currency", "$"));
-            }
-        });
-
-        // Choix de la fréquence de période
-        recurrenceButton.setOnClickListener(new View.OnClickListener() {
-
-            private AlertDialog alertDialog = null;
-            private int choix = 0;
-
-            @Override
-            public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(NewExpensesActivity.this);
-
-                builder.setTitle(R.string.frequency);
-                builder.setIcon(R.drawable.ic_timer_24dp);
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        if (choix == 0) {
-                            Toast.makeText(getApplicationContext(), "Veuillez d'abord choisir une option.", Toast.LENGTH_LONG).show();
-                        } else {
-                            switch (choix) {
-                                case 1:
-                                    recurrenceButton.setText("Chaque semaine");
-                                    choix = 0;
-                                    break;
-                                case 2:
-                                    recurrenceButton.setText("Chaque mois");
-                                    choix = 0;
-                                    break;
-                                case 3:
-                                    recurrenceButton.setText("Chaque année");
-                                    choix = 0;
-                                    break;
-                            }
-                            alertDialog.dismiss();
-                        }
-                    }
-                });
-                builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        alertDialog.cancel();
-                        uniqueButton.setChecked(true);
-                    }
-                });
-                View popupLayout = getLayoutInflater().inflate(R.layout.popup_choix_recurrence, null);
-                builder.setView(popupLayout);
-
-                // Elements du popup
-                final SegmentedGroup popup = (SegmentedGroup) popupLayout.findViewById(R.id.popupRecurrenceChoix);
-                RadioButton freqBtn1 = popup.findViewById(R.id.every_week);
-                RadioButton freqBtn2 = popup.findViewById(R.id.every_month);
-                RadioButton freqBtn3 = popup.findViewById(R.id.every_year);
-
-                // Liens d'écoute sur boutons de récurrence
-                freqBtn1.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        choix = 1;
-                    }
-                });
-
-                freqBtn2.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        choix = 2;
-                    }
-                });
-
-                freqBtn3.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        choix = 3;
-                    }
-                });
-
-                builder.setCancelable(true);
-                alertDialog = builder.create();
-                alertDialog.show();
-                alertDialog.getButton(alertDialog.BUTTON_NEGATIVE).setTextColor(getResources().getColor(R.color.colorPrimary));
-                alertDialog.getButton(alertDialog.BUTTON_POSITIVE).setTextColor(getResources().getColor(R.color.colorPrimary));
-            }
-        });
-
         uniqueButton.setChecked(true);
-        uniqueButton.setOnClickListener(new View.OnClickListener() {
+        recurrenceButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                recurrenceButton.setText(R.string.choix_recurrent_button);
+                uniqueButton.setChecked(true);
+                Snackbar.make(findViewById(R.id.expenseCoordinatorLayout), "Dépense récurrente non implémentée", Snackbar.LENGTH_SHORT).show();
             }
         });
 
         expenseAddButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //Si on est dans le cas d'une modification de dépense
-                if (checkInputValidity() && getIntent().getBooleanExtra("requestModifyData",false)){
-                    //Modification de la dépense dans la base de données
-                    String[] dataToModify = {expenseName.getEditText().getText().toString(),
+
+                if (checkInputValidity()){
+
+                    String repeat = "0"; //dépense unique par défaut
+                    if(recurrenceButton.isChecked()){
+                        repeat = "1";
+                    }
+
+                    String[] data = {expenseName.getEditText().getText().toString(),
                             String.valueOf(categoryID),
-                            expenseAmount.getEditText().getText().toString(),
-                            expenseDate.getEditText().getText().toString()};
-
-                    Toast.makeText(getApplicationContext(), String.valueOf(categoryID), Toast.LENGTH_LONG).show();
-
-                    String strId = getIntent().getStringExtra("idExpenseToModify");
+                            expenseAmountValue.getText().toString(),
+                            currentDate,
+                            repeat};
 
                     Intent intent = getIntent();
-                    intent.putExtra("dataToModify", dataToModify);
-                    intent.putExtra("IdExpense",strId);
+                    intent.putExtra("dataToSave", data);
+
                     setResult(RESULT_OK, intent);
                     finish();
 
-                }
-
-
-                else if (checkInputValidity()) {
-                    //Ajout de la dépense à la base de données
-                    String[] dataToSave = {expenseName.getEditText().getText().toString(),
-                            String.valueOf(categoryID),
-                            expenseAmount.getEditText().getText().toString(),
-                            expenseDate.getEditText().getText().toString()};
-
-                    Intent intent = getIntent();
-                    intent.putExtra("dataToSave", dataToSave);
-                    setResult(RESULT_OK, intent);
-                    finish();
                 } else {
                     try {
                         // Cache le clavier
@@ -344,6 +248,7 @@ public class NewExpensesActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
+
             }
         });
         expenseCategory.getEditText().addTextChangedListener(new TextWatcher() {
@@ -360,7 +265,7 @@ public class NewExpensesActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
             }
         });
-        expenseAmount.getEditText().addTextChangedListener(new TextWatcher() {
+        expenseAmountValue.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 expenseAmount.setErrorEnabled(false);
@@ -413,7 +318,7 @@ public class NewExpensesActivity extends AppCompatActivity {
         }
 
         // Check Amount
-        if (expenseAmount.getEditText().getText().length() == 0) {
+        if (expenseAmountValue.getText().length() == 0) {
             expenseAmount.setError(getString(R.string.empty_amount_error));
             expenseAmount.setErrorEnabled(true);
             allGood = false;
@@ -424,7 +329,10 @@ public class NewExpensesActivity extends AppCompatActivity {
     }
 
     public void updateDate(String date){
-        expenseDate.getEditText().setText(date);
+        currentDate = date;
+        String[] d = date.split("/");
+        String formattedDate = d[0] + MainActivity.getMonthFromNb(d[1], getApplicationContext()) + d[2];
+        expenseDate.getEditText().setText(formattedDate);
     }
 
     public void showDatePickerDialog(View v) {
@@ -588,7 +496,7 @@ public class NewExpensesActivity extends AppCompatActivity {
             }
 
             expenseName.getEditText().setText(logo);
-            expenseAmount.getEditText().setText(montant);
+            expenseAmountValue.setText(montant);
 
             Toast.makeText(getApplicationContext(), String.format("Analyse effectuée en %.1f s", (float) elapsedTime), Toast.LENGTH_SHORT).show();
         }

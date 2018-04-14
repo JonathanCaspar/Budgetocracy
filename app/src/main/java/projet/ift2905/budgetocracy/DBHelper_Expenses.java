@@ -93,6 +93,7 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
     public void deleteDataBase() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DELETE FROM "+ TABLE_NAME); //delete all rows in a table
+        db.execSQL("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='expenses_table'"); //reset the primary keys
     }
 
     public Cursor getExpenseListByKeyword (String search, EnumSort sort){
@@ -138,14 +139,10 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
                         " WHERE " +  DBHelper_Expenses.COL_EXPENSES_2 + "  LIKE  '%" +search + "%' "+
                         " ORDER BY " + DBHelper_Expenses.COL_EXPENSES_2
                         ;
-
                 break;
 
             default :
                 break;
-
-
-
         }
 
         Cursor cursor = db.rawQuery(selectQuery, null);

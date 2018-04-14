@@ -55,18 +55,33 @@
                     app:srcCompat="@drawable/ic_lightbulb_outline_black_24dp" />
             </LinearLayout>
 
-            <android.support.design.widget.TextInputLayout
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/categoryBudget">
-                <EditText
-                    android:layout_width="match_parent"
+                android:orientation="horizontal">
+                <android.support.design.widget.TextInputLayout
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:ems="10"
-                    android:hint="@string/budget"
-                    android:inputType="numberDecimal" />
-            </android.support.design.widget.TextInputLayout>
+                    android:id="@+id/categoryBudget">
+                    <EditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ems="10"
+                        android:hint="@string/budget"
+                        android:inputType="numberDecimal" />
+                </android.support.design.widget.TextInputLayout>
 
+                <TextView
+                    android:id="@+id/currencyNewCategory"
+                    android:layout_width="30dp"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginRight="0dp"
+                    android:layout_marginTop="20dp"
+                    android:ems="18"
+                    android:textSize="20sp" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
