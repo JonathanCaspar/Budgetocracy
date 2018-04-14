@@ -114,27 +114,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         View view = this.getWindow().getDecorView();
         view.setBackgroundColor(getResources().getColor(R.color.colorMainBackground));
 
-
-        showDBexpense = findViewById(R.id.displayDB_expense);
-        showDBexpense.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showMessage("Base de données - Dépenses :", DB_Expenses.getAllStringData());
-            }
-        });
-        showDBbudget = findViewById(R.id.displayDB_budget);
-        showDBbudget.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showMessage("Base de données - Budget :", DB_Budget.getAllStringData());
-            }
-        });
-
-
-
         // Gère la liste des budgets apparaissant dans le menu principal
         cursorBudget = DB_Budget.getAllData();
         mListViewBudget = findViewById(R.id.lstBudget);
+
         customAdapterBudget = new CustomAdapterMainBudget(this,cursorBudget);
         mListViewBudget.setAdapter((ListAdapter) customAdapterBudget);
         mListViewBudget.setDivider(null);
@@ -149,16 +132,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Intent seeExpensesRelativeToBudget = new Intent(MainActivity.this, ExpensesRelativeToBudget.class);
                 seeExpensesRelativeToBudget.putExtra("idBudget", strId);
                 startActivity(seeExpensesRelativeToBudget);
-
-
             }
         });
-
 
         // Accès à tous les Views
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navHeaderDate = navigationView.getHeaderView(0).findViewById(R.id.nav_date);
         mBottomBar = findViewById(R.id.menuBar);
+        mListView = findViewById(R.id.lstExpenses);
+        mButtonAmount = findViewById(R.id.buttonSortAmount);
+        mButtonDate = findViewById(R.id.buttonSortDate);
+        mButtonName = findViewById(R.id.buttonSortName);
 
         try {
             dailyUpdate();
@@ -273,7 +257,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     Integer budgetID = Integer.valueOf(dataToAdd[1]);
                     String expenseMonth = dataToAdd[3].split("/")[1];
-                    System.out.println("---------------- "+expenseMonth);
 
                     if(isSameMonthAsCurrent(expenseMonth)){
                         DB_Budget.substractRemainingAmount(budgetID, Float.valueOf(dataToAdd[2]));
