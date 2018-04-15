@@ -9,6 +9,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.net.sip.SipSession;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -21,6 +24,11 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
+import android.text.style.StyleSpan;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,12 +41,18 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.data.PieData;
+import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.data.PieEntry;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.ArrayList;
 import java.util.Date;
 
 import info.hoang8f.android.segmented.SegmentedGroup;
@@ -75,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     TextView mEmptyView;
     Cursor cursor;
     public EnumSort mSort;
+    private PieChart pieChart;
     private CustomAdapter customAdapter;
     private RadioButton mButtonDate;
     private RadioButton mButtonAmount;
@@ -211,6 +226,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toggle.syncState();
         navigationView.setNavigationItemSelectedListener(this);
 
+        /**** MAIN GRAPH ****/
+        pieChartSetup();
+
         showDBexpense = findViewById(R.id.displayDB_expense);
         showDBexpense.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -232,6 +250,100 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onResume(){
         super.onResume();
         updateMainListBudget();
+    }
+
+    private void pieChartSetup (){
+        pieChart = (PieChart) findViewById(R.id.piechart_1);
+        pieChart.setRotationEnabled(true);
+        pieChart.setUsePercentValues(false);
+        pieChart.getDescription().setEnabled(false);
+        pieChart.setExtraOffsets(5, 10, 5, 5);
+        pieChart.setDragDecelerationFrictionCoef(0.95f);
+        pieChart.setDrawHoleEnabled(true);
+        pieChart.setHoleColor(Color.WHITE);
+        pieChart.setHoleRadius(85.f);
+        pieChart.setTransparentCircleRadius(90f);
+        pieChart.setDrawCenterText(true);
+
+        // Disable the legend
+        Legend l = pieChart.getLegend();
+        l.setEnabled(false);
+
+        // Text from the middle of the piechart graph
+        float budget = 0;
+        float remaining = 0;
+        float usedBudget;
+        int nbDepenses;
+
+        cursor = DB_Expenses.getAllData();
+        nbDepenses = cursor.getCount();
+
+        cursor = DB_Budget.getAllData();
+        cursor.moveToFirst();
+        if(cursor.getCount()>0){
+            do{
+                budget += Float.parseFloat (cursor.getString(2));
+                remaining += Float.parseFloat (cursor.getString(3));
+            }while(cursor.moveToNext());
+        }
+
+
+        usedBudget = budget-remaining + 0.0f;
+        String currency = prefs.getString("currency","$");
+
+        SpannableString s = new SpannableString(getString(R.string.epargne)+"\n"+remaining+currency);
+        s.setSpan(new RelativeSizeSpan(1.5f),getString(R.string.epargne).length(), s.length(), 0);
+        //s.setSpan(new ForegroundColorSpan(Color.rgb(16,176,115)),s.length()-1-Float.toString(remaining).length(), s.length(), 0);
+        pieChart.setCenterText(s);
+
+        // Add the values to the piechart
+        ArrayList<PieEntry> yValues = new ArrayList<>();
+        yValues.add(new PieEntry(usedBudget, ""));
+        yValues.add(new PieEntry(remaining, ""));
+        PieDataSet dataSet = new PieDataSet(yValues,"Budget");
+        dataSet.setSliceSpace(3f);
+        dataSet.setSelectionShift(5f);
+        dataSet.setValueTextSize(0f);
+
+        // Piechart bar colors
+        ArrayList colors = new ArrayList();
+        colors.add(0xFFFFFFFF);
+        colors.add(0xFF10B073);
+        dataSet.setColors(colors);
+
+        PieData data = new PieData((dataSet));
+        pieChart.setData(data);
+
+        //Legend
+        TextView legend = findViewById(R.id.textView6);
+        String string = getString(R.string.totalbudget) +"\n"+Float.toString(budget)+currency
+                +"\n"+getString(R.string.used)
+                +"\n"+Float.toString(usedBudget)+currency
+                +"\n"+getString(R.string.nbBudget)
+                +"\n"+cursor.getCount()
+                +"\n"+getString(R.string.nbExpenses)
+                +"\n"+nbDepenses
+                ;
+        int counter;
+        int counter2;
+        SpannableString string2 = new SpannableString(string);
+        counter = getString(R.string.totalbudget).length();
+        string2.setSpan(new StyleSpan(Typeface.BOLD), 0,counter , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        counter2 = counter + (Float.toString(budget)+currency).length() + 1;
+        string2.setSpan(new RelativeSizeSpan(1.4f),counter,counter2, 0);
+        counter = counter2 + getString(R.string.used).length()+2;
+        string2.setSpan(new StyleSpan(Typeface.BOLD), counter2, counter , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        counter2 = counter + (Float.toString(usedBudget)+currency).length();
+        string2.setSpan(new RelativeSizeSpan(1.4f),counter,counter2, 0);
+        counter = counter2 + getString(R.string.nbBudget).length()+1;
+        string2.setSpan(new StyleSpan(Typeface.BOLD), counter2,counter , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        counter2 = counter + Float.toString(cursor.getCount()).length();
+        string2.setSpan(new RelativeSizeSpan(1.4f),counter,counter2, 0);
+        counter = string.length()-Float.toString(nbDepenses).length()+1;
+        string2.setSpan(new StyleSpan(Typeface.BOLD), counter2,counter , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        string2.setSpan(new RelativeSizeSpan(1.4f),string.length()-Float.toString(nbDepenses).length()+1,string.length(), 0);
+
+        legend.setText(string2);
     }
 
     // Récupère les données attendues d'une activité selon le "requestCode"

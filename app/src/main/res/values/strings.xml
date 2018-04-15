@@ -72,7 +72,7 @@
     <string name="ZAR">rand sud africain</string>
     <string name="change_currency">Changer la devise</string>
     <string name="erase_all_data">Suppression de toutes les données</string>
-    <string name="erase_all_data_message">La suppression des données entrainera la perte irréversible de l\'ensemble de vos dépenses et catégories. \n\nÊtes-vous sûr de vouloir continuer ?</string>
+    <string name="erase_all_data_message">Une suppression des données entrainera la perte irréversible de l\'ensemble de vos dépenses et catégories. \n\nÊtes-vous sûr de vouloir continuer ?</string>
     <string name="erase_all">Tout supprimer</string>
     <string name="successful_erased_data">Toutes les données ont été effacées !</string>
     <string name="modify">Modifier</string>
@@ -94,5 +94,12 @@
     <string name="each_month">Chaque mois</string>
     <string name="categories_sample">Exemples de catégories</string>
 
+    <string name="used">Utilisé</string>
+    <string name="left">Restant</string>
+    <string name="epargne">Epargne</string>
+    <string name="categoryTitle">Dépenses par catégories</string>
+    <string name="totalbudget">Budget Total</string>
+    <string name="nbBudget">Budgets</string>
+    <string name="nbExpenses">Dépenses</string>
 
 </resources>
