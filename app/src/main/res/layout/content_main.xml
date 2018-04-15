@@ -6,84 +6,99 @@
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="projet.ift2905.budgetocracy.MainActivity"
-    tools:showIn="@layout/app_bar_main"
-    >
+    tools:showIn="@layout/app_bar_main">
 
-
-    <!--android:layout_below = "@id/toolbarPosition"-->
-
-    <LinearLayout
-        android:layout_width="fill_parent"
+    <RelativeLayout
+        android:id="@+id/groupPieChart"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="63dp"
         android:orientation="horizontal">
 
-        <Button
-            android:id="@+id/buttonSortName"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_marginTop="55dp"
-            android:text="@string/research_SortName"
-            android:layout_weight="1"/>
-
-        <Button
-            android:id="@+id/buttonSortDate"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+        <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/piechart_1"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
             android:layout_alignParentStart="true"
-            android:layout_alignParentTop="true"
-            android:layout_marginTop="55dp"
-            android:layout_alignBaseline="@+id/buttonSortName"
-            android:text="@string/research_SortDate"
-            android:layout_weight="1"/>
+            android:layout_gravity="center" />
+        <!--android:layout_below = "@id/toolbarPosition"-->
 
-        <Button
-            android:id="@+id/buttonSortAmount"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:layout_marginTop="55dp"
-            android:layout_alignBaseline="@+id/buttonSortDay"
-            android:text="@string/research_SortAmount"
-            android:layout_weight="1"/>
-
-
-    </LinearLayout>
+        <TextView
+            android:id="@+id/pieChartLegend"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_alignBottom="@+id/piechart_1"
+            android:layout_marginRight="20dp"
+            android:layout_toEndOf="@+id/piechart_1"
+            android:textAlignment="textEnd"
+            android:textSize="15dp" />
+    </RelativeLayout>
 
     <ListView
-        android:id="@+id/lstExpenses"
+        android:id="@+id/lstBudget"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="100dp"
-        android:layout_marginBottom="57dp"
-        android:paddingLeft="10dp" />
+        android:layout_marginBottom="56dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="268dp" />
 
 
-    <Button
-        android:id="@+id/displayDB_expense"
-        android:layout_width="wrap_content"
+    <info.hoang8f.android.segmented.SegmentedGroup xmlns:segmentedgroup="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/segGroupResearch"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="179dp"
-        android:text="Afficher la DB Expense"
-        android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/menuBar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/include"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="62dp"
+        android:orientation="horizontal"
+        segmentedgroup:sc_border_width="2dp"
+        segmentedgroup:sc_corner_radius="10dp">
 
-    <Button
-        android:id="@+id/displayDB_budget"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/displayDB_expense"
-        android:layout_below="@+id/displayDB_expense"
-        android:layout_marginTop="32dp"
-        android:text="Afficher la DB budget"
-        android:visibility="visible"
-        app:layout_constraintBottom_toTopOf="@+id/menuBar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="@+id/include"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayout" />
+        <RadioButton
+            android:id="@+id/buttonSortName"
+            style="@style/RadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/segmentedGroup"
+            android:layout_below="@+id/segmentedGroup"
+            android:layout_weight="1"
+            android:text="@string/research_SortName" />
+
+        <RadioButton
+            android:id="@+id/buttonSortDate"
+            style="@style/RadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/segmentedGroup"
+            android:layout_centerHorizontal="true"
+            android:layout_weight="1"
+            android:text="@string/research_SortDate" />
+
+        <RadioButton
+            android:id="@+id/buttonSortAmount"
+            style="@style/RadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/research_SortAmount" />
+
+
+    </info.hoang8f.android.segmented.SegmentedGroup>
+
+
+   <ListView
+       android:id="@+id/lstExpenses"
+       android:layout_width="fill_parent"
+       android:layout_height="fill_parent"
+       android:layout_alignParentStart="true"
+       android:layout_alignParentTop="true"
+       android:layout_marginTop="100dp"
+       android:layout_marginBottom="5dp" />
+
+
 </RelativeLayout>

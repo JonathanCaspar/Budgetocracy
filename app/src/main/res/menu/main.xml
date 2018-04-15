@@ -2,14 +2,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="101"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
-    <item
         android:id="@+id/search"
         android:icon="@drawable/ic_search_24dp"
-        app:showAsAction="ifRoom"
         app:actionViewClass="android.widget.SearchView"
+        app:showAsAction="ifRoom"
         android:title="@string/research" />
+    <item
+        android:id="@+id/currency_settings"
+        android:orderInCategory="101"
+        android:title="@string/change_currency"
+        app:showAsAction="never" />
 </menu>

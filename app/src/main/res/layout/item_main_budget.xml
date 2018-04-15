@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingBottom="6dp"
+        android:paddingLeft="5dp"
+        android:paddingRight="10dp"
+        android:paddingTop="0dp">
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="2dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingLeft="5dp">
+
+            <TextView
+                android:id="@+id/budgetName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="TextView"
+                android:textAlignment="textStart"
+                android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+                android:textColor="@color/progress_background"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/arrowBudget" />
+
+
+            <RelativeLayout
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="5dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/budgetValue"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:elevation="10dp"
+                    android:text="TextView"
+
+                    android:textAlignment="center"
+                    android:textColor="@color/colorMainBackground" />
+
+                <ProgressBar
+                    android:id="@+id/budgetBar"
+                    style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                    android:layout_width="fill_parent"
+                    android:layout_height="25dp"
+
+                    android:background="#555555"
+                    android:backgroundTintMode="src_in"
+                    android:indeterminateTint="@android:color/darker_gray"
+                    android:indeterminateTintMode="src_in"
+                    android:max="100"
+                    android:progress="100"
+                    android:progressBackgroundTint="#555555"
+                    android:progressDrawable="@xml/progress" />
+
+            </RelativeLayout>
+
+        </LinearLayout>
+
+        <SurfaceView
+            android:id="@+id/surfaceView"
+            android:layout_width="22dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="3dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_weight="1"
+            android:background="@color/progress_background"
+            android:visibility="gone" />
+
+        <ImageView
+            android:id="@+id/arrowBudget"
+            android:layout_width="40dp"
+            android:layout_height="match_parent"
+            android:layout_marginTop="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/ic_keyboard_arrow_right_black_24dp"
+            android:scaleX="2.1"
+            android:scaleY="1.2"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+    </LinearLayout>
+
+</android.support.constraint.ConstraintLayout>

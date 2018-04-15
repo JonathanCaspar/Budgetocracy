@@ -1,24 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:background="@color/dark_grey">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
-        app:theme="@style/AppTheme.AppBarOverlay"
         app:popupTheme="@style/AppTheme.PopupOverlay"
-        app:titleTextColor="@color/colorWhite" />
+        app:theme="@style/AppTheme.AppBarOverlay"
+        app:titleTextColor="@color/colorIcons" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_below="@+id/toolbar"
-        android:layout_marginTop="100dp"
+        android:layout_marginBottom="54dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/shadow_listview"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:gravity="center"
@@ -27,6 +32,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="-50dp"
             android:orientation="vertical">
 
             <LinearLayout
@@ -38,6 +44,7 @@
                     android:id="@+id/categoryName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
+
                     <EditText
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -55,18 +62,35 @@
                     app:srcCompat="@drawable/ic_lightbulb_outline_black_24dp" />
             </LinearLayout>
 
-            <android.support.design.widget.TextInputLayout
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/categoryBudget">
-                <EditText
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ems="10"
-                    android:hint="@string/budget"
-                    android:inputType="numberDecimal" />
-            </android.support.design.widget.TextInputLayout>
+                android:orientation="horizontal">
 
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/categoryBudget"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <EditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ems="10"
+                        android:hint="@string/budget"
+                        android:inputType="numberDecimal" />
+                </android.support.design.widget.TextInputLayout>
+
+                <TextView
+                    android:id="@+id/currencyNewCategory"
+                    android:layout_width="30dp"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginRight="0dp"
+                    android:layout_marginTop="20dp"
+                    android:ems="18"
+                    android:textSize="20sp" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
@@ -78,11 +102,11 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
-        android:background="@color/colorPrimaryDark"
+        android:background="@color/colorPrimary"
         android:backgroundTint="@color/colorPrimary"
         android:elevation="0dp"
         android:text="@string/save"
         android:textAppearance="@style/TextAppearance.AppCompat.Button"
-        android:textColor="@color/colorWhite" />
+        android:textColor="@color/colorIcons" />
 
 </RelativeLayout>

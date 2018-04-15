@@ -18,7 +18,8 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.SEARCH" />
@@ -29,25 +30,37 @@
         <activity
             android:name=".NewCategoriesActivity"
             android:parentActivityName=".MainActivity"
-            android:label="Nouvelle catégorie">
+            android:label="Nouvelle catégorie"
+            android:screenOrientation="portrait">
         </activity>
 
         <activity
             android:name=".NewExpensesActivity"
             android:parentActivityName=".MainActivity"
-            android:label="Nouvelle dépense">
+            android:label="Nouvelle dépense"
+            android:screenOrientation="portrait">
         </activity>
 
         <activity
             android:name=".GraphicActivity"
             android:parentActivityName=".MainActivity"
-            android:label="Graphiques">
+            android:label="Graphiques"
+            android:screenOrientation="portrait">
         </activity>
 
         <activity
             android:name=".CategorieDetailsActivity"
             android:parentActivityName=".MainActivity"
-            android:label="@string/categorieNameActivity">
+            android:label="@string/categorieNameActivity"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <activity
+            android:name=".ExpensesRelativeToBudget"
+            android:parentActivityName=".MainActivity"
+            android:label="Dépenses liées au Budget : "
+            android:screenOrientation="portrait">
+
         </activity>
 
         <activity android:name=".CameraActivity"
