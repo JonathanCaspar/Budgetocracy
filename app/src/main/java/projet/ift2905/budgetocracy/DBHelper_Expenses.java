@@ -100,6 +100,7 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
         //Open connection to read only
         SQLiteDatabase db = this.getReadableDatabase();
         String selectQuery="";
+
         switch (sort.getSort()){
             case sortByDate:
                 selectQuery =  "SELECT  rowid as " +
@@ -110,7 +111,7 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
                         DBHelper_Expenses.COL_EXPENSES_4 +
                         " FROM " + DBHelper_Expenses.TABLE_NAME+
                         " WHERE " +  DBHelper_Expenses.COL_EXPENSES_1 + "  LIKE  '%" +search + "%' "+
-                        " ORDER BY " + DBHelper_Expenses.COL_EXPENSES_4
+                        " ORDER BY DATE(" + DBHelper_Expenses.COL_EXPENSES_4 + ")"
                         ;
 
                 break;
@@ -285,5 +286,10 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
             return null;
         }
         return cursor;
+    }
+
+    public void deleteExpensesOfBudget(String budgetId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM "+TABLE_NAME+ " WHERE "+ COL_EXPENSES_2 + "="+budgetId);
     }
 }

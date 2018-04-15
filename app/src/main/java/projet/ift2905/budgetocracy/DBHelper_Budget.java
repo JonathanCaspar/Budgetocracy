@@ -105,7 +105,7 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
         contentValues.put(COL_BUDGET_1,name);
         contentValues.put(COL_BUDGET_2,amount);
         contentValues.put(COL_BUDGET_3,remaining);
-        db.update(TABLE_NAME,contentValues,"ID = ?",new String[] {id});
+        db.update(TABLE_NAME,contentValues,"_id = ?",new String[] {id});
         return true;
     }
 
@@ -121,7 +121,7 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
 
     public Integer deleteData (String id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(TABLE_NAME, "ID = ?",new String[] {id});
+        return db.delete(TABLE_NAME, "_id = ?",new String[] {id});
     }
 
     public void deleteDataBase() {
@@ -130,15 +130,14 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
         db.execSQL("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='budget_table'"); //reset the primary keys
     }
 
-    public String getStringBudgetWithID (String search) {
+    public String getStringBudgetWithID (String id) {
         //Open connection to read only
         SQLiteDatabase db = this.getReadableDatabase();
         String selectQuery = "SELECT " +
                 DBHelper_Budget.COL_BUDGET_1 +
                 " FROM " + DBHelper_Budget.TABLE_NAME +
-                " WHERE _id = " + search
+                " WHERE _id = " + id
         ;
-        //return db.execSQL(selectQuery);
         Cursor cursor =  db.rawQuery(selectQuery, null);
 
         if (cursor == null) {
@@ -163,10 +162,48 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
 
         // Mets à jour les remainings pour les dépenses ayant le même mois courant
         while (expenses.moveToNext()) {
-            String expenseDate = expenses.getString(4).split("/")[1];
+            String expenseDate = expenses.getString(4).split("-")[1];
             if (MainActivity.isSameMonthAsCurrent(expenseDate)){
                 db.execSQL("UPDATE "+TABLE_NAME+" SET "+COL_BUDGET_3+"="+COL_BUDGET_2+"-"+expenses.getFloat(3)+" WHERE _id="+expenses.getString(2));
             }
         }
+    }
+
+    public Cursor getBudget(String id){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT * FROM " + TABLE_NAME  +
+                " WHERE "+ COL_BUDGET_0 +"="+ id
+                ;
+
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        // looping through all rows and adding to list
+
+        if (cursor == null) {
+            return null;
+        } else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+        }
+        return cursor;
+    }
+
+    public Float getRemaining(String idExpense) {
+        //Open connection to read only
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT " +
+                DBHelper_Budget.COL_BUDGET_3 +
+                " FROM " + DBHelper_Budget.TABLE_NAME +
+                " WHERE _id = " + idExpense
+                ;
+        Cursor cursor =  db.rawQuery(selectQuery, null);
+
+        if (cursor == null) {
+            return null;
+        } else if (!cursor.moveToFirst()) {
+            cursor.close();
+            return null;
+        }
+
+        return cursor.getFloat(0);
     }
 }

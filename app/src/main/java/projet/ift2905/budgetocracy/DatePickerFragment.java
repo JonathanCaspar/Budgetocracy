@@ -30,7 +30,7 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
             if(monthFixed.length() == 1){
                 monthFixed = "0"+ monthFixed;
             }
-            ((NewExpensesActivity) getActivity() ).updateDate(dayOfMonth + "/" + monthFixed + "/" + year);
+            ((NewExpensesActivity) getActivity() ).updateDate( year+ "-" + monthFixed + "-" + dayOfMonth);
         } catch(Exception e){
             Toast.makeText(getActivity().getApplicationContext(), "Erreur lors de l'ajout de date.", Toast.LENGTH_LONG).show();
         }

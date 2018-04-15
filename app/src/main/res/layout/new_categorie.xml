@@ -1,24 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    android:background="@color/dark_grey">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
-        app:theme="@style/AppTheme.AppBarOverlay"
         app:popupTheme="@style/AppTheme.PopupOverlay"
+        app:theme="@style/AppTheme.AppBarOverlay"
         app:titleTextColor="@color/colorIcons" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_below="@+id/toolbar"
-        android:layout_marginTop="100dp"
+        android:layout_marginBottom="54dp"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/shadow_listview"
         android:focusable="true"
         android:focusableInTouchMode="true"
         android:gravity="center"
@@ -27,6 +32,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="-50dp"
             android:orientation="vertical">
 
             <LinearLayout
@@ -38,6 +44,7 @@
                     android:id="@+id/categoryName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
+
                     <EditText
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -59,10 +66,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
+
                 <android.support.design.widget.TextInputLayout
+                    android:id="@+id/categoryBudget"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/categoryBudget">
+                    android:layout_height="wrap_content">
+
                     <EditText
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

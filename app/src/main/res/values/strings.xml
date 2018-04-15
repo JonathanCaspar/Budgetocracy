@@ -101,5 +101,16 @@
     <string name="totalbudget">Budget Total</string>
     <string name="nbBudget">Budgets</string>
     <string name="nbExpenses">Dépenses</string>
+    <string name="modify_budget">Modifier le budget</string>
+    <string name="delete_budget">Supprimer le budget</string>
+    <string name="successful_category_modified">Catégorie modifiée avec succès !</string>
+    <string name="existing_expenses_warning">La suppression de ce budget entrainera également la suppression de toutes ces dépenses associées. \n\nSi vous souhaitez les conserver, veuillez d\'abord les réaffecter.</string>
+    <string name="existing_expenses_warning_title">Dépenses associées existantes</string>
+    <string name="delete_budget_msg">Êtes-vous sûr de vouloir supprimer ce budget ?</string>
+    <string name="successful_budget_deleted">Budget supprimé</string>
+    <string name="delete_anyway">Supprimer quand même</string>
+    <string name="edit">Editer</string>
+    <string name="successful_edited_budget">Modification du budget effectuée</string>
+    <string name="new_category">Nouvelle catégorie</string>
 
 </resources>

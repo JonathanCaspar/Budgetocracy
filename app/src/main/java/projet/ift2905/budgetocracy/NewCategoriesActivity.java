@@ -5,7 +5,6 @@ import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.media.Image;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TextInputLayout;
@@ -19,12 +18,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import org.w3c.dom.Text;
-
-import java.util.HashMap;
-import java.util.Iterator;
 
 public class NewCategoriesActivity extends AppCompatActivity {
 
@@ -38,6 +31,7 @@ public class NewCategoriesActivity extends AppCompatActivity {
     private TextView currency;
 
     private final int REQUEST_NEW_CATEGORY = 101;
+    private String oldBudgetValue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +40,8 @@ public class NewCategoriesActivity extends AppCompatActivity {
 
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         ActionBar ab = getSupportActionBar();
+        ab.setIcon(R.drawable.ic_create_new_folder_24dp);
+        ab.setTitle(" "+getString(R.string.new_category));
         ab.setDisplayHomeAsUpEnabled(true);
 
         dbHelper_budget = new DBHelper_Budget(this);
@@ -57,23 +53,45 @@ public class NewCategoriesActivity extends AppCompatActivity {
 
         currency.setText(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("currency","$"));
 
+        // Modification de budget ?
+        if (getIntent().getBooleanExtra("requestModifyData",false)){
+            ab.setTitle(" "+getString(R.string.modify_budget));
+            String strId = getIntent().getStringExtra("idBudgetToModify");
+
+
+            Cursor budget = dbHelper_budget.getBudget(strId);
+
+            String tmpName = budget.getString(1);
+            String tmpAmount = budget.getString(2);
+
+            categoryName.getEditText().setText(tmpName);
+            categoryBudget.getEditText().setText(tmpAmount);
+
+            // Sauvegarde de la valeur du budget pour modification future dans la base de données
+            oldBudgetValue = tmpAmount;
+        }
+
         addCategory.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (checkInputValidity()) {
                     //Ajout de la dépense à la base de données
-                    long id = dbHelper_budget.insertDataName(categoryName.getEditText().getText().toString(),
-                            Float.valueOf(categoryBudget.getEditText().getText().toString()),
-                            Float.valueOf(categoryBudget.getEditText().getText().toString()));
-
-                    Toast.makeText(getApplicationContext(), R.string.successful_category_add, Toast.LENGTH_LONG).show();
+                    String[] dataToSave = {categoryName.getEditText().getText().toString(), categoryBudget.getEditText().getText().toString()};
 
                     Intent intent = getIntent();
-                    //A checker à la fin de la création
-                    if(getIntent().getIntExtra("requestCode", -1) == REQUEST_NEW_CATEGORY){
+
+                    //Création depuis la fenetre d'ajout de dépenses ?
+                    if (intent.getIntExtra("requestCode", -1) == REQUEST_NEW_CATEGORY) {
+                        long id = dbHelper_budget.insertDataName(dataToSave[0], Float.valueOf(dataToSave[1]), Float.valueOf(dataToSave[1]));
                         intent.putExtra("newCategoryName", categoryName.getEditText().getText().toString());
-                        intent.putExtra("newCategoryID",(int)id);
+                        intent.putExtra("newCategoryID", (int) id);
                     }
+
+                    //Modification ?
+                    if (getIntent().getBooleanExtra("requestModifyData",false)) {
+                        intent.putExtra("oldBudgetValue", oldBudgetValue);
+                    }
+                    intent.putExtra("dataToModify", dataToSave);
                     setResult(RESULT_OK, intent);
                     finish();
                 } else {

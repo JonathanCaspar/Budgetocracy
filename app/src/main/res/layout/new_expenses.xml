@@ -5,10 +5,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
+        android:layout_height="match_parent">
 
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
@@ -23,14 +24,20 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@+id/toolbar"
-            android:orientation="vertical"
+            android:background="@color/dark_grey"
             android:focusable="true"
-            android:focusableInTouchMode="true">
+            android:focusableInTouchMode="true"
+            android:orientation="vertical">
 
             <ScrollView
+                android:id="@+id/new_expense_form"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginBottom="60dp">
+                android:layout_marginBottom="54dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_marginTop="5dp"
+                android:background="@drawable/shadow_listview">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -44,7 +51,7 @@
                         android:layout_marginBottom="15dp"
                         android:layout_marginLeft="40dp"
                         android:layout_marginRight="40dp"
-                        android:layout_marginTop="20dp">
+                        android:layout_marginTop="18dp">
 
                         <EditText
                             android:layout_width="match_parent"
@@ -112,7 +119,7 @@
                         android:id="@+id/expenseDate"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
+                        android:layout_marginBottom="5dp"
                         android:layout_marginLeft="40dp"
                         android:layout_marginRight="40dp">
 
@@ -127,30 +134,29 @@
                             android:onClick="showDatePickerDialog" />
                     </android.support.design.widget.TextInputLayout>
 
-                    <info.hoang8f.android.segmented.SegmentedGroup
-                        xmlns:segmentedgroup="http://schemas.android.com/apk/res-auto"
+                    <info.hoang8f.android.segmented.SegmentedGroup xmlns:segmentedgroup="http://schemas.android.com/apk/res-auto"
                         android:id="@+id/choixRecurrence"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_gravity="center"
                         android:layout_margin="10dp"
                         android:orientation="horizontal"
-                        android:layout_gravity="center"
                         segmentedgroup:sc_border_width="2dp"
                         segmentedgroup:sc_corner_radius="10dp">
 
                         <RadioButton
                             android:id="@+id/choix_unique_button"
+                            style="@style/RadioButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/choix_unique_button"
-                            style="@style/RadioButton" />
+                            android:text="@string/choix_unique_button" />
 
                         <RadioButton
                             android:id="@+id/choix_recurrent_button"
+                            style="@style/RadioButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/choix_recurrent_button"
-                            style="@style/RadioButton" />
+                            android:text="@string/choix_recurrent_button" />
                     </info.hoang8f.android.segmented.SegmentedGroup>
                 </LinearLayout>
             </ScrollView>

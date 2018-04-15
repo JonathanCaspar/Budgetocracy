@@ -1,26 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout
+    android:id="@+id/expenseRelativeToBudgetCoordinator"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
+    android:layout_height="match_parent">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        app:theme="@style/AppTheme.AppBarOverlay"
-        app:popupTheme="@style/AppTheme.PopupOverlay"
-        app:titleTextColor="@color/colorMainBackground"/>
+        android:layout_height="match_parent"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:theme="@style/AppTheme.AppBarOverlay"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:titleTextColor="@color/colorMainBackground"/>
+
+        <RelativeLayout
+            android:id="@+id/popupNoExpense"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/lstExpensesRelativeToBudget"
+            android:layout_alignParentStart="true"
+            android:layout_gravity="center"
+            android:layout_marginBottom="9dp"
+            android:layout_marginStart="9dp"
+            android:background="@android:color/white"
+            android:elevation="10dp"
+            android:orientation="vertical"
+            android:paddingBottom="8dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/txtVNoExpense"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:text="Pas de dépense trouvée"
+                android:textAppearance="@android:style/TextAppearance.DialogWindowTitle" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/txtVNoExpense"
+                android:text="Cliquez simplement ici pour en ajouter une"
+                android:textAlignment="center" />
+        </RelativeLayout>
+        <ListView
+            android:id="@+id/lstExpensesRelativeToBudget"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="55dp"
+            android:layout_marginBottom="5dp" />
 
 
-    <ListView
-        android:id="@+id/lstExpensesRelativeToBudget"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="55dp"
-        android:layout_marginBottom="5dp" />
+    </RelativeLayout>
 
-
-</RelativeLayout>
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/floatingAddExpense"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="10dp"
+        android:layout_marginEnd="10dp"
+        android:contentDescription="@string/expensesAdd"
+        android:src="@drawable/ic_add_white_24dp"
+        app:backgroundTint="@color/colorPrimary" />
+</android.support.design.widget.CoordinatorLayout>

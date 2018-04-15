@@ -64,6 +64,8 @@ public class GraphicActivity extends AppCompatActivity {
         setContentView(R.layout.graphics);
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar_1));
         ActionBar ab = getSupportActionBar();
+        ab.setIcon(R.drawable.ic_pie_chart_outlined_white_24dp);
+        ab.setTitle(" "+getString(R.string.graphics));
         ab.setDisplayHomeAsUpEnabled(true);
 
         /****** PIE CHART ******/
@@ -72,20 +74,14 @@ public class GraphicActivity extends AppCompatActivity {
         choixGraphe.setTintColor(getResources().getColor(R.color.colorIcons), getResources().getColor(R.color.colorPrimary));
         final GridView mGridView = findViewById(R.id.gridview_1);
         DBHelper_Budget DB_Budget = new DBHelper_Budget(this);
-        DB_Budget.deleteDataBase();
-        DB_Budget.insertDataName("Restaurant",400.f,400.f);
-        DB_Budget.insertDataName("Cinema",400.f,107.f);
-        DB_Budget.insertDataName("Videojeux",400.f,200.f);
+
         cursor = DB_Budget.getAllData();
 
 
         CustomAdapterGraph customAdapter = new CustomAdapterGraph(this,cursor);
         mGridView.setAdapter(customAdapter);
-        //mGridView.setVisibility(View.INVISIBLE);
-
 
         /****** RADAR CHART ******/
-
         cursor.moveToFirst();
         final String [] categories = new String[cursor.getCount()];
         if(cursor.getCount()>0){

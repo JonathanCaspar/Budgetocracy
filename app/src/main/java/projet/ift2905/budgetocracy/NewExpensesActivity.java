@@ -20,6 +20,8 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -57,7 +59,7 @@ import info.hoang8f.android.segmented.SegmentedGroup;
 public class NewExpensesActivity extends AppCompatActivity {
 
     private ProgressDialog mDialog = null;
-    private DBHelper_Budget dbHelper_budget;
+    private DBHelper_Budget DB_Budget;
     private DBHelper_Expenses DB_Expenses;
     private Vision vision; // Client API
 
@@ -75,7 +77,6 @@ public class NewExpensesActivity extends AppCompatActivity {
     private int categoryID = -1;
     private final int REQUEST_NEW_CATEGORY = 101;
 
-    private String currentDate;
     private SharedPreferences prefs;
 
     @Override
@@ -86,12 +87,14 @@ public class NewExpensesActivity extends AppCompatActivity {
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         ActionBar ab = getSupportActionBar();
         ab.setDisplayHomeAsUpEnabled(true);
-        dbHelper_budget = new DBHelper_Budget(this);
+        ab.setIcon(R.drawable.ic_note_add_24px);
+
+        DB_Budget = new DBHelper_Budget(this);
         DB_Expenses = new DBHelper_Expenses(this);
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
 
         Calendar cal = Calendar.getInstance();
-        DateFormat patternDate = new SimpleDateFormat("dd/MM/yyyy");
+        DateFormat patternDate = new SimpleDateFormat("yyyy-MM-dd");
 
         // Données à entrer
         expenseName = findViewById(R.id.expenseName);
@@ -111,24 +114,27 @@ public class NewExpensesActivity extends AppCompatActivity {
         // Affichage de la devise pour le montant
         currencyNewAmount.setText(prefs.getString("currency","$"));
 
+        Intent intent = getIntent();
         // Ajout de données via un scan ?
-        if (getIntent().getBooleanExtra("requestDataToAPI", false)) { // Scan effectué
-            String[] photoBase64 = {getIntent().getStringExtra("photoBase64")};
+        if (intent.getBooleanExtra("requestDataToAPI", false)) { // Scan effectué
+            String[] photoBase64 = {intent.getStringExtra("photoBase64")};
             LoadDataFromImage task = new LoadDataFromImage(this);
             task.execute(photoBase64);
         }
 
         // Modification de dépense ?
-        if (getIntent().getBooleanExtra("requestModifyData",false)){
-            ab.setTitle(R.string.modifierDepense);
-            String strId = getIntent().getStringExtra("idExpenseToModify");
+        if (intent.getBooleanExtra("requestModifyData",false)){
+            ab.setTitle("    "+getString(R.string.modifierDepense));
+            String strId = intent.getStringExtra("idExpenseToModify");
+            Cursor expense = DB_Expenses.getExpense(strId);
 
-            String tmpName = DB_Expenses.getNameExpenseWithID(strId);
-            String tmpCategorie = DB_Expenses.getCategorieExpenseWithID(strId);
-            categoryID = Integer.valueOf(tmpCategorie);
-            tmpCategorie = dbHelper_budget.getStringBudgetWithID(tmpCategorie);
-            String tmpAmount = DB_Expenses.getAmountExpenseWithID(strId);
-            String tmpDate = DB_Expenses.getDateExpenseWithID(strId);
+            String tmpName = expense.getString(1);
+            categoryID = expense.getInt(2);
+            String tmpCategorie = DB_Budget.getStringBudgetWithID(expense.getString(2));
+            String tmpAmount = expense.getString(3);
+            intent.putExtra("oldExpenseValue", expense.getFloat(3));
+
+            String tmpDate = expense.getString(4);
 
             expenseName.getEditText().setText(tmpName);
             expenseDate.getEditText().setText(tmpDate);
@@ -136,8 +142,16 @@ public class NewExpensesActivity extends AppCompatActivity {
             expenseCategory.getEditText().setText(tmpCategorie);
         }
         else{
-            currentDate = patternDate.format(cal.getTime());
-            expenseDate.getEditText().setText(MainActivity.getCurrentDate(getApplicationContext()));
+            expenseDate.getEditText().setText(patternDate.format(cal.getTime()));
+        }
+
+        // Catégorie déjà connue ?
+        if(intent.hasExtra("categoryID")){
+            categoryID = Integer.valueOf(intent.getStringExtra("categoryID"));
+            System.out.println("has extra Category ID = " + categoryID);
+            String tmpCategorie = DB_Budget.getStringBudgetWithID(String.valueOf(categoryID));
+            System.out.println("has extra tmpCategory = " + tmpCategorie);
+            expenseCategory.getEditText().setText(tmpCategorie);
         }
 
         // Choix de catégorie
@@ -147,14 +161,14 @@ public class NewExpensesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //Récupère la liste des budgets
-                Cursor data = dbHelper_budget.getAllData();
+                Cursor data = DB_Budget.getAllData();
 
                 //Crée la fenêtre de base
                 AlertDialog.Builder builder = new AlertDialog.Builder(NewExpensesActivity.this);
                 builder.setTitle(R.string.pick_category);
 
                 if(data.getCount() > 0) {
-                    final HashMap<Integer,String> categoriesWithID = dbHelper_budget.getBudgetList();
+                    final HashMap<Integer,String> categoriesWithID = DB_Budget.getBudgetList();
                     final String[] categories = new String[categoriesWithID.size()];
                     final int[] IDs = new int[categoriesWithID.size()];
                     int i = 0;
@@ -220,7 +234,7 @@ public class NewExpensesActivity extends AppCompatActivity {
                     String[] data = {expenseName.getEditText().getText().toString(),
                             String.valueOf(categoryID),
                             expenseAmountValue.getText().toString(),
-                            currentDate,
+                            expenseDate.getEditText().getText().toString(),
                             repeat};
 
                     Intent intent = getIntent();
@@ -334,10 +348,38 @@ public class NewExpensesActivity extends AppCompatActivity {
     }
 
     public void updateDate(String date){
-        currentDate = date;
-        String[] d = date.split("/");
-        String formattedDate = d[0] + MainActivity.getMonthFromNb(d[1], getApplicationContext()) + d[2];
-        expenseDate.getEditText().setText(formattedDate);
+        expenseDate.getEditText().setText(date);
+    }
+
+    // Partie Menu (Editer, supprimer)
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+       if (getIntent().getBooleanExtra("requestModifyData",false)) {
+           getMenuInflater().inflate(R.menu.expenses_menu, menu);
+       }
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.deleteExpenseOptions:
+                String strId = getIntent().getStringExtra("idExpenseToModify");
+                Cursor expenseData = DB_Expenses.getExpense(strId); // Toutes les informations de la dépense sélectionné
+
+                if (expenseData != null) {
+                    String expenseDate = expenseData.getString(4).split("-")[1];
+                    if (MainActivity.isSameMonthAsCurrent(expenseDate)) {
+                        // Mets à jour le reste du budget associé à la dépense si cette dernière et enregistré pour le mois courant
+                        DB_Budget.increaseRemainingAmount(expenseData.getInt(2), expenseData.getFloat(3));
+                    }
+                    DB_Expenses.deleteData(strId);
+                    Toast.makeText(getApplicationContext(), R.string.successful_expense_deleted, Toast.LENGTH_SHORT).show();
+                    finish();
+                    break;
+                }
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     public void showDatePickerDialog(View v) {

@@ -11,7 +11,6 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.net.sip.SipSession;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -26,7 +25,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
-import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
 import android.text.style.StyleSpan;
 import android.view.Menu;
@@ -34,9 +32,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RadioButton;
+import android.widget.RelativeLayout;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,8 +51,8 @@ import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 
 import info.hoang8f.android.segmented.SegmentedGroup;
@@ -100,8 +100,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private DBHelper_Expenses DB_Expenses;
     private DBHelper_Budget DB_Budget;
     private TextView navHeaderDate;
-    private Button showDBexpense;
-    private Button showDBbudget;
+    private TextView legend;
+    private RelativeLayout groupPieChart;
 
     //LISTE BUDGET MAIN
     ListView mListViewBudget;
@@ -114,7 +114,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     final int PERMISSION_ALL = 101;
     final int REQUEST_IMAGE_CAPTURE = 102;
     final int REQUEST_EXPENSE_DATA = 103;
-    final int REQUEST_MODIFICATION_EXPENSE_DATA = 104;
+    final int REQUEST_BUDGET_DATA  = 104;
+    final int REQUEST_MODIFICATION_EXPENSE_DATA = 105;
+    final int REQUEST_MODIFICATION_BUDGET_DATA  = 106;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,17 +129,59 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         DB_Budget = new DBHelper_Budget(this);
 
         View view = this.getWindow().getDecorView();
-        view.setBackgroundColor(getResources().getColor(R.color.colorMainBackground));
+        view.setBackgroundColor(getResources().getColor(R.color.dark_grey));
 
         // Gère la liste des budgets apparaissant dans le menu principal
         cursorBudget = DB_Budget.getAllData();
+
         mListViewBudget = findViewById(R.id.lstBudget);
+        groupPieChart = findViewById(R.id.groupPieChart);
+
+        mListViewBudget.setBackground(getDrawable(R.drawable.shadow_listview));
+        groupPieChart.setBackground(getDrawable(R.drawable.shadow_listview));
 
         customAdapterBudget = new CustomAdapterMainBudget(this,cursorBudget);
         mListViewBudget.setAdapter((ListAdapter) customAdapterBudget);
-        mListViewBudget.setDivider(null);
+        mListViewBudget.setDividerHeight(2);
 
-        // Quand on clique sur une des dépenses de la liste, on redirige vers la page pour la modifier
+        // Actions liées au budget (modification, suppression)
+        mListViewBudget.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                final String strId = String.valueOf(id);
+                String[] list = {getResources().getString(R.string.modify_budget), getResources().getString(R.string.delete_budget)};
+
+                final AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+                builder.setCancelable(true);
+                builder.setItems(list, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch(which){
+                            case 0: // Modification du budget
+                                // On appelle l'activité pour modifier la dépense (qui est en soit l'activité de création de dépense, auxquelle on fourni un extra particulier)
+                                Intent modifyExpense = new Intent(MainActivity.this, NewCategoriesActivity.class);
+                                modifyExpense.putExtra("requestModifyData", true);
+                                modifyExpense.putExtra("idBudgetToModify",strId);
+                                startActivityForResult(modifyExpense,REQUEST_MODIFICATION_BUDGET_DATA);
+                                updateMainListBudget();
+                                pieChartSetup();
+                                break;
+
+                            case 1: // Suppression du budget
+                                requestBudgetDelete(strId);
+                                break;
+
+                            default:
+                                break;
+                        }
+                    }
+                }) ;
+                builder.show();
+                return true;
+            }
+        });
+
+        // Affiche les dépenses liées au budget selectionné
         mListViewBudget.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -150,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
 
+
         // Accès à tous les Views
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navHeaderDate = navigationView.getHeaderView(0).findViewById(R.id.nav_date);
@@ -158,6 +203,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mButtonAmount = findViewById(R.id.buttonSortAmount);
         mButtonDate = findViewById(R.id.buttonSortDate);
         mButtonName = findViewById(R.id.buttonSortName);
+        pieChart = findViewById(R.id.piechart_1);
+        legend = findViewById(R.id.pieChartLegend);
 
         try {
             dailyUpdate();
@@ -204,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
 
                     case R.id.menu_categories:
-                        startActivity(new Intent(MainActivity.this, NewCategoriesActivity.class));
+                        startActivityForResult(new Intent(MainActivity.this, NewCategoriesActivity.class), REQUEST_BUDGET_DATA);
                         return true;
 
                     case R.id.menu_add_expenses:
@@ -228,21 +275,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         /**** MAIN GRAPH ****/
         pieChartSetup();
-
-        showDBexpense = findViewById(R.id.displayDB_expense);
-        showDBexpense.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showMessage("Base de données - Dépenses :", DB_Expenses.getAllStringData());
-            }
-        });
-        showDBbudget = findViewById(R.id.displayDB_budget);
-        showDBbudget.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showMessage("Base de données - Budget :", DB_Budget.getAllStringData());
-            }
-        });
     }
 
     // Reactualise l'affichage de la liste de Budgets quand on revient à la mainActivity
@@ -250,10 +282,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onResume(){
         super.onResume();
         updateMainListBudget();
+        pieChartSetup();
     }
 
     private void pieChartSetup (){
-        pieChart = (PieChart) findViewById(R.id.piechart_1);
         pieChart.setRotationEnabled(true);
         pieChart.setUsePercentValues(false);
         pieChart.getDescription().setEnabled(false);
@@ -287,7 +319,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }while(cursor.moveToNext());
         }
 
-
         usedBudget = budget-remaining + 0.0f;
         String currency = prefs.getString("currency","$");
 
@@ -315,7 +346,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         pieChart.setData(data);
 
         //Legend
-        TextView legend = findViewById(R.id.textView6);
         String string = getString(R.string.totalbudget) +"\n"+Float.toString(budget)+currency
                 +"\n"+getString(R.string.used)
                 +"\n"+Float.toString(usedBudget)+currency
@@ -364,28 +394,63 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             case REQUEST_EXPENSE_DATA:
                 if (resultCode == RESULT_OK && data != null) {
-                    Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_expense_add, Snackbar.LENGTH_SHORT).show();
                     String[] dataToAdd = data.getStringArrayExtra("dataToSave");
 
                     Integer budgetID = Integer.valueOf(dataToAdd[1]);
-                    String expenseMonth = dataToAdd[3].split("/")[1];
+                    System.out.println("dataToAdd3 = " + dataToAdd[3]);
+                    String expenseMonth = dataToAdd[3].split("-")[1];
 
                     if(isSameMonthAsCurrent(expenseMonth)){
                         DB_Budget.substractRemainingAmount(budgetID, Float.valueOf(dataToAdd[2]));
                     }
                     DB_Expenses.insertDataName(dataToAdd[0], budgetID, Float.valueOf(dataToAdd[2]), dataToAdd[3]);
+                    Toast.makeText(getApplicationContext(), R.string.successful_expense_add, Toast.LENGTH_LONG).show();
                 }
                 break;
 
 
             case REQUEST_MODIFICATION_EXPENSE_DATA:
                 if (resultCode == RESULT_OK && data !=null){
-                    Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_expense_modification, Snackbar.LENGTH_SHORT).show();
                     String[] dataToModify = data.getStringArrayExtra("dataToSave");
                     String idExpense = data.getStringExtra("idExpenseToModify");
+                    Float oldExpenseValue = data.getFloatExtra("oldExpenseValue", 0);
 
-                    Integer budgetID = Integer.valueOf(dataToModify[1]);
-                    DB_Expenses.updateData(idExpense,dataToModify[0],budgetID,Float.valueOf(dataToModify[2]), dataToModify[3]);
+                    String expenseMonth = dataToModify[3].split("-")[1];
+                    Integer categoryID = Integer.valueOf(dataToModify[1]);
+
+                    if(isSameMonthAsCurrent(expenseMonth)){
+                        DB_Budget.increaseRemainingAmount(categoryID, oldExpenseValue);
+                        DB_Budget.substractRemainingAmount(categoryID, Float.valueOf(dataToModify[2]));
+                    }
+                    DB_Expenses.updateData(idExpense,dataToModify[0],categoryID,Float.valueOf(dataToModify[2]), dataToModify[3]);
+                    Toast.makeText(getApplicationContext(), R.string.successful_expense_modification, Toast.LENGTH_LONG).show();
+
+                }
+                break;
+
+            case REQUEST_BUDGET_DATA:
+                if (resultCode == RESULT_OK && data != null) {
+                    String[] dataToAdd = data.getStringArrayExtra("dataToModify");
+                    Float budgetValue = Float.valueOf(dataToAdd[1]);
+
+                    DB_Budget.insertDataName(dataToAdd[0], budgetValue, budgetValue);
+                    Toast.makeText(getApplicationContext(), R.string.successful_category_add, Toast.LENGTH_LONG).show();
+                }
+                break;
+
+            case REQUEST_MODIFICATION_BUDGET_DATA:
+                if (resultCode == RESULT_OK && data !=null){
+                    String[] dataToModify = data.getStringArrayExtra("dataToModify");
+                    String idExpense = data.getStringExtra("idBudgetToModify");
+                    Float oldBudgetValue = Float.valueOf(data.getStringExtra("oldBudgetValue"));
+                    Float newBudgetValue = Float.valueOf(dataToModify[1]);
+                    Float remaining = DB_Budget.getRemaining(idExpense);
+
+                    Float newRemaining = newBudgetValue - (oldBudgetValue - remaining);
+
+                    // Calcul du nouveau remaining (selon la différence entre l'ancienne valeur et la nouvelle)
+                    DB_Budget.updateData(idExpense,dataToModify[0],Float.valueOf(dataToModify[1]), newRemaining);
+                    Toast.makeText(getApplicationContext(), R.string.successful_category_modified, Toast.LENGTH_LONG).show();
                 }
                 break;
         }
@@ -398,8 +463,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Calendar nextMonth = Calendar.getInstance();
         nextMonth.add(Calendar.MONTH, 1); // Prochain mois
 
-        DateFormat df = new SimpleDateFormat("dd/MM/yyyy");
-        DateFormat monthyear = new SimpleDateFormat("MM/yyyy");
+        DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+        DateFormat monthyear = new SimpleDateFormat("MM-yyyy");
 
         String today = df.format(cal.getTime());
         String resetDay = "01/"+ monthyear.format(nextMonth.getTime());
@@ -470,9 +535,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     // Affiche la date courante dans le Toolbar
     public static String getCurrentDate(Context ctx){
-        DateFormat dateFormat = new SimpleDateFormat("d/MM/yyyy");
+        DateFormat dateFormat = new SimpleDateFormat("d-MM-yyyy");
         Date date = new Date();
-        String[] dateStr = dateFormat.format(date).split("/");
+        String[] dateStr = dateFormat.format(date).split("-");
 
         return dateStr[0] + getMonthFromNb(dateStr[1], ctx) + dateStr[2];
     }
@@ -664,36 +729,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     public void onClick(DialogInterface dialog, int which) {
                         switch(which){
                             case 0: // Modification
-                                // On appelle l'activité pour modifier la dépense (qui est en soit l'activité de création de dépense, auxquelle on fourni un extra particulier)
-                                Intent modifyExpense = new Intent(MainActivity.this, NewExpensesActivity.class);
-                                modifyExpense.putExtra("requestModifyData", true);
-                                modifyExpense.putExtra("idExpenseToModify",strId);
-                                startActivityForResult(modifyExpense,REQUEST_MODIFICATION_EXPENSE_DATA);
-
+                                modifyExpenseOptions(strId);
                                 // Une fois qu'on a modifié la dépense, on ferme la recherche précédente pour l'actualiser
                                 mSearchView.setQuery("", false);
                                 mSearchView.setIconified(true);
                                 break;
 
                             case 1: // Suppression
-                                Cursor expenseData = DB_Expenses.getExpense(strId); // Toutes les informations de la dépense sélectionné
-
-                                if(expenseData != null){
-                                    String expenseDate = expenseData.getString(4).split("/")[1];
-                                    if(isSameMonthAsCurrent(expenseDate)){
-                                        // Mets à jour le reste du budget associé à la dépense si cette dernière et enregistré pour le mois courant
-                                        DB_Budget.increaseRemainingAmount(expenseData.getInt(2), expenseData.getFloat(3));
-                                    }
-                                    DB_Expenses.deleteData(strId);
-                                    updateMainListBudget();
-                                    Snackbar.make(findViewById(R.id.myCoordinatorLayout),R.string.successful_expense_deleted, Snackbar.LENGTH_SHORT).show();
-                                }
+                                deleteExpenseOptions(strId);
 
                                 // Refresh la liste de dépenses dans la recherche
                                 updateResearchList("");
 
                                 // Refresh la liste de budgets
                                 updateMainListBudget();
+                                pieChartSetup();
                                 break;
 
                             default:
@@ -705,6 +755,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         });
         return true;
+    }
+
+    public void modifyExpenseOptions(String strId){
+        // On appelle l'activité pour modifier la dépense (qui est en soit l'activité de création de dépense, auxquelle on fourni un extra particulier)
+        Intent modifyExpense = new Intent(MainActivity.this, NewExpensesActivity.class);
+        modifyExpense.putExtra("requestModifyData", true);
+        modifyExpense.putExtra("idExpenseToModify",strId);
+        startActivityForResult(modifyExpense,REQUEST_MODIFICATION_EXPENSE_DATA);
+    }
+
+    public void deleteExpenseOptions(String strId){
+        Cursor expenseData = DB_Expenses.getExpense(strId); // Toutes les informations de la dépense sélectionné
+
+        if(expenseData != null){
+            String expenseDate = expenseData.getString(4).split("-")[1];
+            if(isSameMonthAsCurrent(expenseDate)){
+                // Mets à jour le reste du budget associé à la dépense si cette dernière et enregistré pour le mois courant
+                DB_Budget.increaseRemainingAmount(expenseData.getInt(2), expenseData.getFloat(3));
+            }
+            DB_Expenses.deleteData(strId);
+            Toast.makeText(getApplicationContext(),R.string.successful_expense_deleted, Toast.LENGTH_SHORT).show();
+        }
     }
 
     public static boolean isSameMonthAsCurrent(String month){
@@ -736,6 +808,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mButtonName.setVisibility(visibility);
 
         if(shown){
+            this.getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.colorIcons));
             mListView.setDivider(null);
             mListView.setDividerHeight(2);
         }
@@ -745,9 +818,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int visibility = shown ? View.VISIBLE : View.GONE;
 
         mBottomBar.setVisibility(visibility);
-        showDBbudget.setVisibility(visibility);
-        showDBexpense.setVisibility(visibility);
         mListViewBudget.setVisibility(visibility);
+        pieChart.setVisibility(visibility);
+        legend.setVisibility(visibility);
+
+        if(shown){
+            this.getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.dark_grey));
+        }
     }
 
     @Override
@@ -781,6 +858,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         editor.putString("currency", chosenCurrency);
                         editor.putInt("currencyID", which); // Modification du paramètre "devise"
                         editor.apply();
+                        pieChartSetup();
                         Toast.makeText(getApplicationContext(), "Devise choisie : "+ chosenCurrency, Toast.LENGTH_LONG).show();
                         dialog.dismiss();
                     }
@@ -823,6 +901,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         DB_Budget.deleteDataBase();
                         updateMainListBudget();
                         Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_erased_data, Snackbar.LENGTH_SHORT).show();
+                        pieChartSetup();
                     }
                 });
                 builder.show();
@@ -840,6 +919,52 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    // Gère la suppression de budget
+    public void requestBudgetDelete(final String budgetID){
+        Cursor expensesOfBudget = DB_Expenses.getExpensesAssociateToBudget(budgetID); // Toutes les informations du budget sélectionné
+        if(expensesOfBudget != null){
+            if(expensesOfBudget.getCount() > 0){
+                // Afficher un message avisant l'utilisateur de la suppression des dépenses associées
+                final AlertDialog.Builder message = new AlertDialog.Builder(MainActivity.this);
+                message.setCancelable(true);
+                message.setMessage(R.string.existing_expenses_warning);
+                message.setIcon(R.drawable.ic_delete_black_24dp);
+                message.setTitle(R.string.existing_expenses_warning_title);
+                message.setNegativeButton(R.string.cancel, null);
+                message.setPositiveButton(R.string.delete_anyway, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        DB_Budget.deleteData(budgetID);
+                        DB_Expenses.deleteExpensesOfBudget(budgetID);
+                        updateMainListBudget();
+                        pieChartSetup();
+                        Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_erased_data, Snackbar.LENGTH_SHORT).show();
+                    }
+                });
+                message.show();
+            }
+        }
+        else{
+            // Afficher un message avisant l'utilisateur de la suppression des dépenses associées
+            final AlertDialog.Builder message = new AlertDialog.Builder(MainActivity.this);
+            message.setCancelable(true);
+            message.setMessage(R.string.delete_budget_msg);
+            message.setIcon(R.drawable.ic_delete_black_24dp);
+            message.setTitle(R.string.delete_budget);
+            message.setNegativeButton(R.string.cancel, null);
+            message.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    DB_Budget.deleteData(budgetID);
+                    updateMainListBudget();
+                    pieChartSetup();
+                    Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_budget_deleted, Snackbar.LENGTH_SHORT).show();
+                }
+            });
+            message.show();
+        }
     }
 
     public void showMessage(String title, String message) {

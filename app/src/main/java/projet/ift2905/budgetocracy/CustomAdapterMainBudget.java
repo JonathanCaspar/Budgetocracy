@@ -3,10 +3,12 @@ package projet.ift2905.budgetocracy;
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CursorAdapter;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -18,6 +20,7 @@ public class CustomAdapterMainBudget extends CursorAdapter{
     TextView mBudget;
     TextView mValueBudget;
     ProgressBar mBarBudget;
+    ImageView arrow;
 
 
     public CustomAdapterMainBudget (Context context, Cursor c){
@@ -36,6 +39,7 @@ public class CustomAdapterMainBudget extends CursorAdapter{
         mBudget = (TextView) view.findViewById(R.id.budgetName);
         mValueBudget = (TextView) view.findViewById(R.id.budgetValue);
         mBarBudget = (ProgressBar) view.findViewById(R.id.budgetBar);
+        arrow = (ImageView) view.findViewById(R.id.arrowBudget);
 
         String name = cursor.getString(1);
         String amount = cursor.getString(3) + " / "+ cursor.getString(2);
@@ -46,14 +50,11 @@ public class CustomAdapterMainBudget extends CursorAdapter{
 
         mBarBudget.setProgress((int)valuePercent);
 
-        if(valueBar > 0){
+        if(valueBar >= 0){
             mBarBudget.setProgressDrawable(context.getResources().getDrawable(R.drawable.progress_bar_positive));
             mBarBudget.setBackgroundColor(context.getResources().getColor(R.color.progress_background));
         }
-        else if (valueBar == 0){
-            mBarBudget.setProgressDrawable(null);
-            mBarBudget.setBackgroundColor(context.getResources().getColor(R.color.progress_neutral));
-        }
+
         else{
             mBarBudget.setProgressDrawable(null);
             mBarBudget.setBackgroundColor(context.getResources().getColor(R.color.progress_negative));
