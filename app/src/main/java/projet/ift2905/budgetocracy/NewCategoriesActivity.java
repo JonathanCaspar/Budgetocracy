@@ -21,16 +21,14 @@ import android.widget.TextView;
 
 public class NewCategoriesActivity extends AppCompatActivity {
 
+    private final int REQUEST_NEW_CATEGORY = 101;
     private ProgressDialog mDialog = null;
     private DBHelper_Budget dbHelper_budget;
-
     private TextInputLayout categoryName;
     private TextInputLayout categoryBudget;
     private ImageView categoryHint;
     private Button addCategory;
     private TextView currency;
-
-    private final int REQUEST_NEW_CATEGORY = 101;
     private String oldBudgetValue;
 
     @Override
@@ -41,7 +39,7 @@ public class NewCategoriesActivity extends AppCompatActivity {
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
         ActionBar ab = getSupportActionBar();
         ab.setIcon(R.drawable.ic_create_new_folder_24dp);
-        ab.setTitle(" "+getString(R.string.new_category));
+        ab.setTitle(" " + getString(R.string.new_category));
         ab.setDisplayHomeAsUpEnabled(true);
 
         dbHelper_budget = new DBHelper_Budget(this);
@@ -51,11 +49,11 @@ public class NewCategoriesActivity extends AppCompatActivity {
         addCategory = findViewById(R.id.addCategory);
         currency = findViewById(R.id.currencyNewCategory);
 
-        currency.setText(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("currency","$"));
+        currency.setText(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("currency", "$"));
 
         // Modification de budget ?
-        if (getIntent().getBooleanExtra("requestModifyData",false)){
-            ab.setTitle(" "+getString(R.string.modify_budget));
+        if (getIntent().getBooleanExtra("requestModifyData", false)) {
+            ab.setTitle(" " + getString(R.string.modify_budget));
             String strId = getIntent().getStringExtra("idBudgetToModify");
 
 
@@ -88,7 +86,7 @@ public class NewCategoriesActivity extends AppCompatActivity {
                     }
 
                     //Modification ?
-                    if (getIntent().getBooleanExtra("requestModifyData",false)) {
+                    if (getIntent().getBooleanExtra("requestModifyData", false)) {
                         intent.putExtra("oldBudgetValue", oldBudgetValue);
                     }
                     intent.putExtra("dataToModify", dataToSave);
@@ -111,32 +109,40 @@ public class NewCategoriesActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 categoryName.setErrorEnabled(false);
             }
+
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
         categoryBudget.getEditText().addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 categoryBudget.setErrorEnabled(false);
             }
+
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
 
         // Suggestion de catégories
         categoryHint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final String[] listCategory = { getString(R.string.alimentation),
-                                          getString(R.string.logement),
-                                          getString(R.string.telephone),
-                                          getString(R.string.internet),
-                                          getString(R.string.loisirs),
-                                          getString(R.string.transport)
+                final String[] listCategory = {getString(R.string.alimentation),
+                        getString(R.string.logement),
+                        getString(R.string.telephone),
+                        getString(R.string.internet),
+                        getString(R.string.loisirs),
+                        getString(R.string.transport)
                 };
                 //Crée la fenêtre de base
                 AlertDialog.Builder builder = new AlertDialog.Builder(NewCategoriesActivity.this);
@@ -147,7 +153,7 @@ public class NewCategoriesActivity extends AppCompatActivity {
                         categoryName.getEditText().setText(listCategory[which]);
                     }
                 });
-                builder.setNegativeButton(R.string.cancel ,null);
+                builder.setNegativeButton(R.string.cancel, null);
                 builder.setCancelable(true);
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
@@ -173,13 +179,11 @@ public class NewCategoriesActivity extends AppCompatActivity {
             categoryBudget.setError(getString(R.string.empty_amount_error));
             categoryBudget.setErrorEnabled(true);
             allGood = false;
-        }
-        else if (Float.valueOf(budget) <= 0 ){
+        } else if (Float.valueOf(budget) <= 0) {
             categoryBudget.setError(getString(R.string.negative_amount_error));
             categoryBudget.setErrorEnabled(true);
             allGood = false;
-        }
-        else {
+        } else {
             categoryBudget.setErrorEnabled(false);
         }
         return allGood;

@@ -5,7 +5,6 @@ import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -65,11 +64,11 @@ public class GraphicActivity extends AppCompatActivity {
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar_1));
         ActionBar ab = getSupportActionBar();
         ab.setIcon(R.drawable.ic_pie_chart_outlined_white_24dp);
-        ab.setTitle(" "+getString(R.string.graphics));
+        ab.setTitle(" " + getString(R.string.graphics));
         ab.setDisplayHomeAsUpEnabled(true);
 
         /****** PIE CHART ******/
-        pieChart =  findViewById(R.id.piechart_1);
+        pieChart = findViewById(R.id.piechart_1);
         SegmentedGroup choixGraphe = findViewById(R.id.choixGraphe);
         choixGraphe.setTintColor(getResources().getColor(R.color.colorIcons), getResources().getColor(R.color.colorPrimary));
         final GridView mGridView = findViewById(R.id.gridview_1);
@@ -78,18 +77,18 @@ public class GraphicActivity extends AppCompatActivity {
         cursor = DB_Budget.getAllData();
 
 
-        CustomAdapterGraph customAdapter = new CustomAdapterGraph(this,cursor);
+        CustomAdapterGraph customAdapter = new CustomAdapterGraph(this, cursor);
         mGridView.setAdapter(customAdapter);
 
         /****** RADAR CHART ******/
         cursor.moveToFirst();
-        final String [] categories = new String[cursor.getCount()];
-        if(cursor.getCount()>0){
+        final String[] categories = new String[cursor.getCount()];
+        if (cursor.getCount() > 0) {
             int i = 0;
-            do{
+            do {
                 categories[i] = cursor.getString(1);
-                i=i+1;
-            }while(cursor.moveToNext());
+                i = i + 1;
+            } while (cursor.moveToNext());
         }
 
         radarChart = (RadarChart) findViewById(R.id.radar_graph);
@@ -112,6 +111,7 @@ public class GraphicActivity extends AppCompatActivity {
         xAxis.setXOffset(0f);
         xAxis.setValueFormatter(new IAxisValueFormatter() {
             private String[] mActivities = categories;
+
             @Override
             public String getFormattedValue(float value, AxisBase axis) {
                 return mActivities[(int) value % mActivities.length];
@@ -223,20 +223,19 @@ public class GraphicActivity extends AppCompatActivity {
         radarChart.invalidate();
     }
 
-    public void setData_Bar(){
+    public void setData_Bar() {
 
         cursor.moveToFirst();
         ArrayList<BarEntry> entries = new ArrayList<BarEntry>();
 
         int count = 1;
-        if(cursor.getCount()>0){
-            do{
-                float expent = Float.parseFloat(cursor.getString(2))-Float.parseFloat(cursor.getString(3));
-                entries.add(new BarEntry(count,expent));
-                count ++;
-            }while(cursor.moveToNext());
-        }
-        else return;
+        if (cursor.getCount() > 0) {
+            do {
+                float expent = Float.parseFloat(cursor.getString(2)) - Float.parseFloat(cursor.getString(3));
+                entries.add(new BarEntry(count, expent));
+                count++;
+            } while (cursor.moveToNext());
+        } else return;
 
         BarDataSet set1;
         set1 = new BarDataSet(entries, "");
@@ -259,15 +258,14 @@ public class GraphicActivity extends AppCompatActivity {
         cursor.moveToFirst();
         ArrayList<RadarEntry> entries2 = new ArrayList<RadarEntry>();
 
-        if(cursor.getCount()>0){
-            do{
-                float remainingPercent = Float.parseFloat(cursor.getString(3))/Float.parseFloat(cursor.getString(2));
-                entries2.add(new RadarEntry(remainingPercent*100.0f));
-            }while(cursor.moveToNext());
-        }
-        else return;
+        if (cursor.getCount() > 0) {
+            do {
+                float remainingPercent = Float.parseFloat(cursor.getString(3)) / Float.parseFloat(cursor.getString(2));
+                entries2.add(new RadarEntry(remainingPercent * 100.0f));
+            } while (cursor.moveToNext());
+        } else return;
 
-        RadarDataSet set2 = new RadarDataSet(entries2, getString(R.string.left)+" Budget %");
+        RadarDataSet set2 = new RadarDataSet(entries2, "Budget " + getString(R.string.left) + " %");
         set2.setColor(Color.rgb(121, 162, 175));
         set2.setFillColor(Color.rgb(121, 162, 175));
         set2.setDrawFilled(true);

@@ -1,9 +1,9 @@
 package projet.ift2905.budgetocracy;
 
-import android.app.Dialog;
-import android.support.v4.app.DialogFragment;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.widget.DatePicker;
 import android.widget.Toast;
 
@@ -26,12 +26,12 @@ public class DatePickerFragment extends DialogFragment implements DatePickerDial
     @Override
     public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
         try {
-            String monthFixed = String.valueOf(month+1);
-            if(monthFixed.length() == 1){
-                monthFixed = "0"+ monthFixed;
+            String monthFixed = String.valueOf(month + 1);
+            if (monthFixed.length() == 1) {
+                monthFixed = "0" + monthFixed;
             }
-            ((NewExpensesActivity) getActivity() ).updateDate( year+ "-" + monthFixed + "-" + dayOfMonth);
-        } catch(Exception e){
+            ((NewExpensesActivity) getActivity()).updateDate(year + "-" + monthFixed + "-" + dayOfMonth);
+        } catch (Exception e) {
             Toast.makeText(getActivity().getApplicationContext(), "Erreur lors de l'ajout de date.", Toast.LENGTH_LONG).show();
         }
     }

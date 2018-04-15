@@ -18,12 +18,12 @@ public class MyAxisValueFormatter implements IAxisValueFormatter {
 
     public MyAxisValueFormatter(Context context) {
         mFormat = new DecimalFormat("###,###,###,##0.0");
-        this.context= context;
+        this.context = context;
     }
 
     @Override
     public String getFormattedValue(float value, AxisBase axis) {
-        String currency = PreferenceManager.getDefaultSharedPreferences(context).getString("currency","$");
-        return mFormat.format(value) + " $";
+        String currency = PreferenceManager.getDefaultSharedPreferences(context).getString("currency", "$");
+        return mFormat.format(value) + " " + currency;
     }
 }

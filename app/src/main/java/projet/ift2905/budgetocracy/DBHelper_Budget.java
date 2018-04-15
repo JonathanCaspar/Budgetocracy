@@ -23,122 +23,92 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
         super(context, DATABASE_NAME_BUDGET, null, 1);
     }
 
-    public static synchronized DBHelper_Budget getInstance(Context context) {
-
-        // Use the application context, which will ensure that you
-        // don't accidentally leak an Activity's context.
-        // See this article for more information: http://bit.ly/6LRzfx
-        if (sInstance == null) {
-            sInstance = new DBHelper_Budget(context.getApplicationContext());
-        }
-        return sInstance;
-    }
-
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String sql = "create table " +TABLE_NAME+ "( "
-                + COL_BUDGET_0 +" INTEGER PRIMARY KEY AUTOINCREMENT  , "
-                + COL_BUDGET_1 +" TEXT , "
-                + COL_BUDGET_2 +" REAL , "
-                + COL_BUDGET_3 +" REAL ) ";
+        String sql = "create table " + TABLE_NAME + "( "
+                + COL_BUDGET_0 + " INTEGER PRIMARY KEY AUTOINCREMENT  , "
+                + COL_BUDGET_1 + " TEXT , "
+                + COL_BUDGET_2 + " REAL , "
+                + COL_BUDGET_3 + " REAL ) ";
         db.execSQL(sql);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        String sql = "DROP TABLE IF EXISTS "+TABLE_NAME;
+        String sql = "DROP TABLE IF EXISTS " + TABLE_NAME;
         db.execSQL(sql);
         onCreate(db);
     }
 
     /**** EXEMPLE INSERT  *****/
-    public long insertDataName(String name, float amount, float remaining){
+    public long insertDataName(String name, float amount, float remaining) {
         SQLiteDatabase db = this.getReadableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(COL_BUDGET_1,name);
-        contentValues.put(COL_BUDGET_2,amount);
-        contentValues.put(COL_BUDGET_3,remaining);
-        long id = db.insert(TABLE_NAME,null,contentValues);
+        contentValues.put(COL_BUDGET_1, name);
+        contentValues.put(COL_BUDGET_2, amount);
+        contentValues.put(COL_BUDGET_3, remaining);
+        long id = db.insert(TABLE_NAME, null, contentValues);
         return id;
     }
 
-    public Cursor getAllData(){
+    public Cursor getAllData() {
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("select * from "+TABLE_NAME,null);
+        return db.rawQuery("select * from " + TABLE_NAME, null);
     }
 
-    public String getAllStringData(){
-        /** Cursor is the pointer that traverse the data*/
-        Cursor result = this.getAllData();
-
-        /** Buffer will stock the data filtred from the DATABASE*/
-        StringBuffer buffer = new StringBuffer();
-        while (result.moveToNext()) {
-            buffer.append("ID: " + result.getString(0) + " - ");
-            buffer.append("NAME: " + result.getString(1) + " - ");
-            buffer.append("BUDGET: " + result.getString(2) + " - ");
-            buffer.append("REMAINING: " + result.getString(3) + "\n\n");
-        }
-        result.close();
-        return buffer.toString();
-    }
-
-    public HashMap<Integer,String> getBudgetList(){
+    public HashMap<Integer, String> getBudgetList() {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor data = db.rawQuery("select "+ COL_BUDGET_0+", "+ COL_BUDGET_1 +" from "+TABLE_NAME,null);
+        Cursor data = db.rawQuery("select " + COL_BUDGET_0 + ", " + COL_BUDGET_1 + " from " + TABLE_NAME, null);
 
-        HashMap<Integer,String> hm = new HashMap<Integer,String>();
+        HashMap<Integer, String> hm = new HashMap<Integer, String>();
 
         while (data.moveToNext()) {
             // ID & NAME
-            hm.put(data.getInt(0),data.getString(1));
+            hm.put(data.getInt(0), data.getString(1));
         }
         return hm;
     }
 
-
-
-    public Boolean updateData(String id,String name, float amount, float remaining ){
+    public Boolean updateData(String id, String name, float amount, float remaining) {
         SQLiteDatabase db = this.getReadableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(COL_BUDGET_0,id);
-        contentValues.put(COL_BUDGET_1,name);
-        contentValues.put(COL_BUDGET_2,amount);
-        contentValues.put(COL_BUDGET_3,remaining);
-        db.update(TABLE_NAME,contentValues,"_id = ?",new String[] {id});
+        contentValues.put(COL_BUDGET_0, id);
+        contentValues.put(COL_BUDGET_1, name);
+        contentValues.put(COL_BUDGET_2, amount);
+        contentValues.put(COL_BUDGET_3, remaining);
+        db.update(TABLE_NAME, contentValues, "_id = ?", new String[]{id});
         return true;
     }
 
-    public void substractRemainingAmount(Integer ID, Float toSubstract){
+    public void substractRemainingAmount(Integer ID, Float toSubstract) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("UPDATE "+TABLE_NAME+" SET "+COL_BUDGET_3+"="+COL_BUDGET_3+"-"+toSubstract+" WHERE _id="+ID);
+        db.execSQL("UPDATE " + TABLE_NAME + " SET " + COL_BUDGET_3 + "=" + COL_BUDGET_3 + "-" + toSubstract + " WHERE _id=" + ID);
     }
 
-    public void increaseRemainingAmount(Integer ID, Float toSubstract){
+    public void increaseRemainingAmount(Integer ID, Float toSubstract) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("UPDATE "+TABLE_NAME+" SET "+COL_BUDGET_3+"="+COL_BUDGET_3+"+"+toSubstract+" WHERE _id="+ID);
+        db.execSQL("UPDATE " + TABLE_NAME + " SET " + COL_BUDGET_3 + "=" + COL_BUDGET_3 + "+" + toSubstract + " WHERE _id=" + ID);
     }
 
-    public Integer deleteData (String id) {
+    public Integer deleteData(String id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(TABLE_NAME, "_id = ?",new String[] {id});
+        return db.delete(TABLE_NAME, "_id = ?", new String[]{id});
     }
 
     public void deleteDataBase() {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DELETE FROM "+TABLE_NAME); //delete all rows in a table
+        db.execSQL("DELETE FROM " + TABLE_NAME); //delete all rows in a table
         db.execSQL("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='budget_table'"); //reset the primary keys
     }
 
-    public String getStringBudgetWithID (String id) {
+    public String getStringBudgetWithID(String id) {
         //Open connection to read only
         SQLiteDatabase db = this.getReadableDatabase();
         String selectQuery = "SELECT " +
                 DBHelper_Budget.COL_BUDGET_1 +
                 " FROM " + DBHelper_Budget.TABLE_NAME +
-                " WHERE _id = " + id
-        ;
-        Cursor cursor =  db.rawQuery(selectQuery, null);
+                " WHERE _id = " + id;
+        Cursor cursor = db.rawQuery(selectQuery, null);
 
         if (cursor == null) {
             return null;
@@ -153,7 +123,7 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
 
     public void resetRemaining() {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("UPDATE "+TABLE_NAME+" SET "+COL_BUDGET_3+"="+COL_BUDGET_2);
+        db.execSQL("UPDATE " + TABLE_NAME + " SET " + COL_BUDGET_3 + "=" + COL_BUDGET_2);
 
     }
 
@@ -163,21 +133,19 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
         // Mets à jour les remainings pour les dépenses ayant le même mois courant
         while (expenses.moveToNext()) {
             String expenseDate = expenses.getString(4).split("-")[1];
-            if (MainActivity.isSameMonthAsCurrent(expenseDate)){
-                db.execSQL("UPDATE "+TABLE_NAME+" SET "+COL_BUDGET_3+"="+COL_BUDGET_2+"-"+expenses.getFloat(3)+" WHERE _id="+expenses.getString(2));
+            if (MainActivity.isSameMonthAsCurrent(expenseDate)) {
+                db.execSQL("UPDATE " + TABLE_NAME + " SET " + COL_BUDGET_3 + "=" + COL_BUDGET_2 + "-" + expenses.getFloat(3) + " WHERE _id=" + expenses.getString(2));
             }
         }
     }
 
-    public Cursor getBudget(String id){
+    public Cursor getBudget(String id) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String selectQuery = "SELECT * FROM " + TABLE_NAME  +
-                " WHERE "+ COL_BUDGET_0 +"="+ id
-                ;
+        String selectQuery = "SELECT * FROM " + TABLE_NAME +
+                " WHERE " + COL_BUDGET_0 + "=" + id;
 
         Cursor cursor = db.rawQuery(selectQuery, null);
         // looping through all rows and adding to list
-
         if (cursor == null) {
             return null;
         } else if (!cursor.moveToFirst()) {
@@ -193,9 +161,8 @@ public class DBHelper_Budget extends SQLiteOpenHelper {
         String selectQuery = "SELECT " +
                 DBHelper_Budget.COL_BUDGET_3 +
                 " FROM " + DBHelper_Budget.TABLE_NAME +
-                " WHERE _id = " + idExpense
-                ;
-        Cursor cursor =  db.rawQuery(selectQuery, null);
+                " WHERE _id = " + idExpense;
+        Cursor cursor = db.rawQuery(selectQuery, null);
 
         if (cursor == null) {
             return null;

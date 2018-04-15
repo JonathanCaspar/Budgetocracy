@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@SuppressWarnings( "deprecation" )
+@SuppressWarnings("deprecation")
 
 
 public class CameraActivity extends AppCompatActivity {
@@ -32,7 +32,7 @@ public class CameraActivity extends AppCompatActivity {
     private FloatingActionButton captureButton;
     private FrameLayout cameraFrame;
 
-    private static  final int FOCUS_AREA_SIZE = 300;
+    private static final int FOCUS_AREA_SIZE = 300;
 
 
     @Override
@@ -57,7 +57,7 @@ public class CameraActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     handlePictureCallBack();
-                    mCamera.takePicture(null,null, mPicture);
+                    mCamera.takePicture(null, null, mPicture);
                 }
             });
             autoFocusManuel();
@@ -115,24 +115,32 @@ public class CameraActivity extends AppCompatActivity {
         releaseCamera();
     }
 
-    private void releaseCamera(){
-        if (mCamera != null){
+    private void releaseCamera() {
+        if (mCamera != null) {
             mCamera.release();        // release the camera for other applications
             mCamera = null;
         }
     }
 
-    public void setCameraParameters(){
+    public void setCameraParameters() {
         //STEP #1: Get rotation degrees
         Camera.CameraInfo info = new Camera.CameraInfo();
         Camera.getCameraInfo(Camera.CameraInfo.CAMERA_FACING_BACK, info);
         int rotation = this.getWindowManager().getDefaultDisplay().getRotation();
         int degrees = 0;
         switch (rotation) {
-            case Surface.ROTATION_0: degrees = 0; break; //Natural orientation
-            case Surface.ROTATION_90: degrees = 90; break; //Landscape left
-            case Surface.ROTATION_180: degrees = 180; break;//Upside down
-            case Surface.ROTATION_270: degrees = 270; break;//Landscape right
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break; //Natural orientation
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break; //Landscape left
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;//Upside down
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;//Landscape right
         }
         int rotate = (info.orientation - degrees + 360) % 360;
 
@@ -143,11 +151,11 @@ public class CameraActivity extends AppCompatActivity {
         List<Camera.Size> sizes = params.getSupportedPictureSizes();
         int w = 0, h = 0, ecartW = 4000, ecartH = 4000;
         for (Camera.Size size : sizes) {
-            int ecartTempW = 800 - size.width ;
+            int ecartTempW = 800 - size.width;
             int ecartTempH = 480 - size.height;
 
             if (ecartTempW >= 0 && ecartTempH >= 0) {
-                if(ecartTempW <= ecartW && ecartTempH <= ecartH){
+                if (ecartTempW <= ecartW && ecartTempH <= ecartH) {
                     w = size.width;
                     h = size.height;
 
@@ -175,7 +183,7 @@ public class CameraActivity extends AppCompatActivity {
                     Rect focusRect = calculateFocusArea(event.getX(), event.getY());
 
                     Camera.Parameters parameters = camera.getParameters();
-                    if (parameters.getFocusMode().equals(Camera.Parameters.FOCUS_MODE_AUTO)){
+                    if (parameters.getFocusMode().equals(Camera.Parameters.FOCUS_MODE_AUTO)) {
                         parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
                     }
 
@@ -222,14 +230,14 @@ public class CameraActivity extends AppCompatActivity {
 
     private int clamp(int touchCoordinateInCameraReper, int focusAreaSize) {
         int result;
-        if (Math.abs(touchCoordinateInCameraReper)+focusAreaSize/2>1000){
-            if (touchCoordinateInCameraReper>0){
-                result = 1000 - focusAreaSize/2;
+        if (Math.abs(touchCoordinateInCameraReper) + focusAreaSize / 2 > 1000) {
+            if (touchCoordinateInCameraReper > 0) {
+                result = 1000 - focusAreaSize / 2;
             } else {
-                result = -1000 + focusAreaSize/2;
+                result = -1000 + focusAreaSize / 2;
             }
-        } else{
-            result = touchCoordinateInCameraReper - focusAreaSize/2;
+        } else {
+            result = touchCoordinateInCameraReper - focusAreaSize / 2;
         }
         return result;
     }

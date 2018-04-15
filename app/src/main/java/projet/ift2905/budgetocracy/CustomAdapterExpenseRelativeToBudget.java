@@ -18,31 +18,30 @@ public class CustomAdapterExpenseRelativeToBudget extends CursorAdapter {
     TextView mDate;
 
 
-    public CustomAdapterExpenseRelativeToBudget (Context context, Cursor c){
-        super(context,c);
+    public CustomAdapterExpenseRelativeToBudget(Context context, Cursor c) {
+        super(context, c);
     }
 
 
     @Override
-    public View newView(Context context, Cursor cursor, ViewGroup parent){
-        return LayoutInflater.from(context).inflate(R.layout.item_research,parent,false);
+    public View newView(Context context, Cursor cursor, ViewGroup parent) {
+        return LayoutInflater.from(context).inflate(R.layout.item_research, parent, false);
     }
 
 
     @Override
-    public void bindView(View view, Context context, Cursor cursor){
+    public void bindView(View view, Context context, Cursor cursor) {
         mExpense = (TextView) view.findViewById(R.id.txtName);
 
         mAmount = (TextView) view.findViewById(R.id.txtAmount);
         mDate = (TextView) view.findViewById(R.id.txtDate);
 
 
-
         String name = cursor.getString(1);
         String amount = cursor.getString(3);
         String date = cursor.getString(4);
 
-        amount = "-$ "+amount;
+        amount = "-$ " + amount;
 
         mExpense.setText(name);
         mAmount.setText(amount);
