@@ -439,75 +439,86 @@ public class NewExpensesActivity extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
             mDialog = new ProgressDialog(ctx);
-            mDialog.setMessage("Analyse de la photo ...");
+            mDialog.setMessage(getString(R.string.photo_analysis));
             mDialog.setCancelable(false);
+            mDialog.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    Toast.makeText(getApplicationContext(), R.string.photo_analysis_cancelled, Toast.LENGTH_LONG).show();
+                    cancel(true);
+                }
+            });
             mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
             mDialog.show();
         }
 
         @Override
         protected String doInBackground(String... photoBase64) {
-            // A RECUPERER : logoAnnotations/description & textannotations/description
+            while(!isCancelled()) {
+                // A RECUPERER : logoAnnotations/description & textannotations/description
+                Vision.Builder visionBuilder = new Vision.Builder(new NetHttpTransport(), new AndroidJsonFactory(), null);
+                String cleAPI = "AIzaSyCtMmGlTBQgA28OMFv8ZeCxSkVIh7-9vPk"; // CLE PRIVEE ---> vous DEVEZ vous procurer votre propre clé avec Google
+                visionBuilder.setVisionRequestInitializer(new VisionRequestInitializer(cleAPI));
+                vision = visionBuilder.build();
 
-            Vision.Builder visionBuilder = new Vision.Builder(new NetHttpTransport(), new AndroidJsonFactory(), null);
-            String cleAPI = "AIzaSyCtMmGlTBQgA28OMFv8ZeCxSkVIh7-9vPk"; // CLE PRIVEE ---> vous DEVEZ vous procurer votre propre clé avec Google
-            visionBuilder.setVisionRequestInitializer(new VisionRequestInitializer(cleAPI));
-            vision = visionBuilder.build();
+                // Type d'analyse d'image
+                Feature featureLogo = new Feature();
+                Feature featureText = new Feature();
+                featureLogo.setType("LOGO_DETECTION");
+                featureText.setType("TEXT_DETECTION");
 
-            // Type d'analyse d'image
-            Feature featureLogo = new Feature();
-            Feature featureText = new Feature();
-            featureLogo.setType("LOGO_DETECTION");
-            featureText.setType("TEXT_DETECTION");
+                Image inputImage = new Image();
+                inputImage.encodeContent(com.google.api.client.util.Base64.decodeBase64(photoBase64[0]));
+                AnnotateImageRequest request = new AnnotateImageRequest();
+                request.setImage(inputImage);
+                request.setFeatures(Arrays.asList(featureLogo, featureText));
+                try {
+                    System.out.println("Requete: " + request.toPrettyString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
-            Image inputImage = new Image();
-            inputImage.encodeContent(com.google.api.client.util.Base64.decodeBase64(photoBase64[0]));
-            AnnotateImageRequest request = new AnnotateImageRequest();
-            request.setImage(inputImage);
-            request.setFeatures(Arrays.asList(featureLogo, featureText));
-            try {
-                System.out.println("Requete: " + request.toPrettyString());
-            } catch (IOException e) {
-                e.printStackTrace();
+                BatchAnnotateImagesRequest batchRequest = new BatchAnnotateImagesRequest();
+                batchRequest.setRequests(Arrays.asList(request));
+
+                // Réponse du serveur
+                BatchAnnotateImagesResponse batchResponse = new BatchAnnotateImagesResponse();
+                try {
+                    batchResponse = vision.images().annotate(batchRequest).execute();
+
+                } catch (IOException e) {
+                    Toast.makeText(getApplicationContext(), "Impossible d'accéder à la reconnaissance de textes", Toast.LENGTH_LONG).show();
+                    Log.d("API Run :", e.toString());
+                }
+
+                final TextAnnotation text = batchResponse.getResponses().get(0).getFullTextAnnotation();
+                final List<EntityAnnotation> logo = batchResponse.getResponses().get(0).getLogoAnnotations();
+
+                // Affichage de la réponse logo
+                String result = "";
+
+                if (logo != null) {
+                    result += logo.get(0).getDescription();
+                } else {
+                    result += " ";
+                }
+                result += "-#-"; //Séparateur
+
+                // Affichage du texte
+                if (text != null) {
+                    String textReceived = text.getText();
+                    System.out.println(textReceived);
+                    elapsedTime = ((new Date()).getTime() - startTime) / 1000;
+                    result += textReceived;
+                } else {
+                    result += " ";
+                }
+                String finalResult = fixUppercase(result);
+                System.out.println("resultFinal = " + finalResult);
+                return finalResult;
             }
-
-            BatchAnnotateImagesRequest batchRequest = new BatchAnnotateImagesRequest();
-            batchRequest.setRequests(Arrays.asList(request));
-
-            // Réponse du serveur
-            BatchAnnotateImagesResponse batchResponse = new BatchAnnotateImagesResponse();
-            try {
-                batchResponse = vision.images().annotate(batchRequest).execute();
-            } catch (IOException e) {
-                Toast.makeText(getApplicationContext(), "Impossible d'accéder à la reconnaissance de textes", Toast.LENGTH_LONG).show();
-                Log.d("API Run :", e.toString());
-            }
-
-            final TextAnnotation text = batchResponse.getResponses().get(0).getFullTextAnnotation();
-            final List<EntityAnnotation> logo = batchResponse.getResponses().get(0).getLogoAnnotations();
-
-            // Affichage de la réponse logo
-            String result = "";
-
-            if (logo != null) {
-                result += logo.get(0).getDescription();
-            } else {
-                result += " ";
-            }
-            result += "-#-"; //Séparateur
-
-            // Affichage du texte
-            if (text != null) {
-                String textReceived = text.getText();
-                System.out.println(textReceived);
-                elapsedTime = ((new Date()).getTime() - startTime) / 1000;
-                result += textReceived;
-            } else {
-                result += " ";
-            }
-            String finalResult = fixUppercase(result);
-            System.out.println("resultFinal = " + finalResult);
-            return finalResult;
+            return null;
         }
 
         protected void onProgressUpdate(Integer... progress) {
@@ -518,8 +529,25 @@ public class NewExpensesActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             mDialog.dismiss();
             String[] reponse = result.split("-#-");
-            String logo = reponse[0];
-            String text = reponse[1];
+            System.out.println("RESULT API -------) " + result);
+            String logo = "";
+            String text = "";
+
+            if (!result.equals("-#-")) {
+                //Tentative de lecture du logo
+                try {
+                    logo = reponse[0];
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    e.printStackTrace();
+                }
+
+                //Tentative de lecture du texte
+                try {
+                    text = reponse[1];
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    e.printStackTrace();
+                }
+            }
             String montant = "";
 
             // Détecte un pattern (total digit.digit)
@@ -546,15 +574,17 @@ public class NewExpensesActivity extends AppCompatActivity {
             if (matcherDate.find()) {
                 System.out.println("dateRegex = " + matcherDate.group(0));
                 String[] date = matcherDate.group(0).trim().split("/");
-                String newDate = fixDate(date[1]) + MainActivity.getMonthFromNb(date[0], getApplicationContext()) + fixShortYear(date[2]);
+                String newDate = fixShortYear(date[2]) + "-" + fixDate(date[1]) + "-" + date[0];
                 expenseDate.getEditText().setText(newDate);
             }
 
             expenseName.getEditText().setText(logo);
             expenseAmountValue.setText(montant);
-
-            Toast.makeText(getApplicationContext(), String.format("Analyse effectuée en %.1f s", (float) elapsedTime), Toast.LENGTH_SHORT).show();
         }
 
+        @Override
+        protected void onCancelled() {
+            cancel(true);
+        }
     }
 }

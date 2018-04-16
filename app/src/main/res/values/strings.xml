@@ -112,5 +112,7 @@
     <string name="edit">Editer</string>
     <string name="successful_edited_budget">Modification du budget effectuée</string>
     <string name="new_category">Nouvelle catégorie</string>
+    <string name="photo_analysis">Analyse de la photo...</string>
+    <string name="photo_analysis_cancelled">Analyse stoppée: impossible d\'extraire les informations.</string>
 
 </resources>

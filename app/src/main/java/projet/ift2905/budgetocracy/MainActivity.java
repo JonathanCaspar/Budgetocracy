@@ -130,6 +130,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 final AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
                 builder.setCancelable(true);
+                builder.setTitle(((Cursor)parent.getAdapter().getItem(position)).getString(1));
                 builder.setItems(list, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -445,7 +446,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         DateFormat monthyear = new SimpleDateFormat("MM-yyyy");
 
         String today = df.format(cal.getTime());
-        String resetDay = "01/" + monthyear.format(nextMonth.getTime());
+        String resetDay = "01-" + monthyear.format(nextMonth.getTime());
 
         // Si le jour de reset prochain n'est pas défini, l'ajouter dans les préférences
         if (!prefs.contains("nextResetDate")) {
@@ -464,7 +465,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.monthly_reset_process, Snackbar.LENGTH_LONG).show();
 
             // Défini la prochaine date de reset
-            edit.putString("nextResetDate", "01/" + monthyear.format(nextMonth.getTime()));
+            edit.putString("nextResetDate", "01-" + monthyear.format(nextMonth.getTime()));
             edit.apply();
         }
     }
@@ -580,10 +581,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 return false;
             }
         });
+
+        mSearchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateResearchList("");
+                // Affiche l'interface de recherche
+                setResearchVisibility(true);
+                // Cache l'écran principal
+                setMainViewVisibility(false);
+            }
+        });
         // Quand on quitte la recherche on fait disparaitre le ListView
         mSearchView.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
+                // Cache l'interface de recherche
                 setResearchVisibility(false);
                 // Réactivation ecran principal
                 setMainViewVisibility(true);
@@ -600,7 +613,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 final AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
                 builder.setCancelable(true);
-                builder.setTitle(DB_Expenses.getNameExpenseWithID(strId));
+                builder.setTitle(((Cursor)parent.getAdapter().getItem(position)).getString(1));
                 builder.setIcon(R.drawable.ic_edit_black_24dp);
                 builder.setItems(list, new DialogInterface.OnClickListener() {
                     @Override

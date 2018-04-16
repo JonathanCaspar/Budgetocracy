@@ -77,7 +77,7 @@ public class ExpensesRelativeToBudget extends AppCompatActivity {
 
                 final AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
                 builder.setCancelable(true);
-                builder.setTitle(dbHelper_expenses.getNameExpenseWithID(expenseID));
+                builder.setTitle(((Cursor)parent.getAdapter().getItem(position)).getString(1));
                 builder.setIcon(R.drawable.ic_edit_black_24dp);
                 builder.setItems(list, new DialogInterface.OnClickListener() {
                     @Override
