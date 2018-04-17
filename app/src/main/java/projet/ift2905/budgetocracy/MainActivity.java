@@ -31,6 +31,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RadioButton;
@@ -94,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private TextView legend;
     private RelativeLayout groupPieChart;
     private CustomAdapterMainBudget customAdapterBudget;
+    private LinearLayout popupNoBudget;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -183,6 +185,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mButtonName = findViewById(R.id.buttonSortName);
         pieChart = findViewById(R.id.piechart_1);
         legend = findViewById(R.id.pieChartLegend);
+        popupNoBudget = findViewById(R.id.popupNoBudget);
 
         try {
             // Checking journalier (reset mensuel/dépenses à mettre à jour)
@@ -285,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         float remaining = 0;
         float usedBudget;
         int nbDepenses;
-        DecimalFormat df = new DecimalFormat("#.00");
+        DecimalFormat df = new DecimalFormat("0.00");
 
         cursor = DB_Expenses.getAllData();
         nbDepenses = cursor.getCount();
@@ -673,6 +676,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void updateMainListBudget() {
         cursorBudget = DB_Budget.getAllData();
         customAdapterBudget.changeCursor(cursorBudget);
+        // Vérifier si vide : si oui affichage message
+        if(cursorBudget.getCount() == 0){
+            popupNoBudget.setVisibility(View.VISIBLE);
+
+        }
+        else {
+            popupNoBudget.setVisibility(View.GONE);
+        }
     }
 
     public void updateResearchList(String search) {
@@ -702,6 +713,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mListViewBudget.setVisibility(visibility);
         pieChart.setVisibility(visibility);
         legend.setVisibility(visibility);
+
+        if(cursorBudget.getCount() == 0){
+            popupNoBudget.setVisibility(visibility);
+        }
 
         if (shown) {
             this.getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.dark_grey));
@@ -794,6 +809,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             case R.id.nav_donation:
                 Snackbar.make(findViewById(R.id.myCoordinatorLayout), "Pas implémenté, nous ne sommes pas des escrocs", Snackbar.LENGTH_LONG).show();
+                break;
+
+            case R.id.nav_credit:
+                final AlertDialog.Builder builderCredit = new AlertDialog.Builder(this);
+                builderCredit.setCancelable(true);
+                builderCredit.setTitle(R.string.credit);
+                builderCredit.setMessage(R.string.icon_credit);
+                builderCredit.setPositiveButton(R.string.OK, null);
+                builderCredit.show();
                 break;
         }
 

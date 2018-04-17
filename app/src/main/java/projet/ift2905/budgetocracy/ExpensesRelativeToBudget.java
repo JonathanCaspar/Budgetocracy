@@ -168,7 +168,7 @@ public class ExpensesRelativeToBudget extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 dbHelper_budget.deleteData(categoryID);
                                 dbHelper_expenses.deleteExpensesOfBudget(categoryID);
-                                Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_budget_deleted, Snackbar.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), R.string.successful_budget_deleted, Toast.LENGTH_SHORT).show();
                                 finish();
                             }
                         });
@@ -186,8 +186,7 @@ public class ExpensesRelativeToBudget extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dbHelper_budget.deleteData(categoryID);
-                            Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_budget_deleted, Snackbar.LENGTH_SHORT).show();
-                            finish();
+                            Toast.makeText(getApplicationContext(), R.string.successful_budget_deleted, Toast.LENGTH_SHORT).show();                            finish();
                         }
                     });
                     message.show();

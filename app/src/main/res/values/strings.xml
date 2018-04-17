@@ -114,5 +114,13 @@
     <string name="new_category">Nouvelle catégorie</string>
     <string name="photo_analysis">Analyse de la photo...</string>
     <string name="photo_analysis_cancelled">Analyse stoppée: impossible d\'extraire les informations.</string>
+    <string name="contact_us">Contactez-nous</string>
+    <string name="donation">Faire un don</string>
+    <string name="credit">Crédits</string>
+    <string name="icon_credit">Icon made by Roundicons from www.flaticon.com</string>
+    <string name="no_expense" >Pas de dépense trouvée</string>
+    <string name="click_here_expense">Cliquez simplement ici pour en ajouter une</string>
+    <string name="no_budget">Aucun budget</string>
+    <string name="click_here_budget">Cliquez ici pour en créer un nouveau</string>
 
 </resources>
