@@ -58,11 +58,11 @@ import info.hoang8f.android.segmented.SegmentedGroup;
 
 public class NewExpensesActivity extends AppCompatActivity {
 
+    private final int REQUEST_NEW_CATEGORY = 101;
     private ProgressDialog mDialog = null;
     private DBHelper_Budget DB_Budget;
     private DBHelper_Expenses DB_Expenses;
     private Vision vision; // Client API
-
     private TextInputLayout expenseName;
     private TextInputLayout expenseCategory;
     private TextInputLayout expenseDate;
@@ -73,11 +73,33 @@ public class NewExpensesActivity extends AppCompatActivity {
     private RadioButton recurrenceButton;
     private Button expenseAddButton;
     private TextView currencyNewAmount;
-
     private int categoryID = -1;
-    private final int REQUEST_NEW_CATEGORY = 101;
-
     private SharedPreferences prefs;
+
+    public static String fixUppercase(String str) {
+        if (str.length() > 1) {
+            String trimStr = str.trim();
+            String newStr = trimStr.substring(0, 1).toUpperCase() + trimStr.toLowerCase().substring(1);
+            return newStr;
+        }
+        return "";
+    }
+
+    public static String fixShortYear(String year) {
+        String newYear = year;
+        if (year.length() == 2) {
+            newYear = "20" + year;
+        }
+        return newYear;
+    }
+
+    public static String fixDate(String date) {
+        String newDate = date;
+        if (date.substring(0, 1).equals("0")) {
+            newDate = date.substring(1, 2);
+        }
+        return newDate;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,7 +134,7 @@ public class NewExpensesActivity extends AppCompatActivity {
         choixRecurrence.setTintColor(getResources().getColor(R.color.colorPrimary), getResources().getColor(R.color.colorIcons));
 
         // Affichage de la devise pour le montant
-        currencyNewAmount.setText(prefs.getString("currency","$"));
+        currencyNewAmount.setText(prefs.getString("currency", "$"));
 
         Intent intent = getIntent();
         // Ajout de données via un scan ?
@@ -123,8 +145,8 @@ public class NewExpensesActivity extends AppCompatActivity {
         }
 
         // Modification de dépense ?
-        if (intent.getBooleanExtra("requestModifyData",false)){
-            ab.setTitle("    "+getString(R.string.modifierDepense));
+        if (intent.getBooleanExtra("requestModifyData", false)) {
+            ab.setTitle(" " + getString(R.string.modifierDepense));
             String strId = intent.getStringExtra("idExpenseToModify");
             Cursor expense = DB_Expenses.getExpense(strId);
 
@@ -140,13 +162,12 @@ public class NewExpensesActivity extends AppCompatActivity {
             expenseDate.getEditText().setText(tmpDate);
             expenseAmountValue.setText(tmpAmount);
             expenseCategory.getEditText().setText(tmpCategorie);
-        }
-        else{
+        } else {
             expenseDate.getEditText().setText(patternDate.format(cal.getTime()));
         }
 
         // Catégorie déjà connue ?
-        if(intent.hasExtra("categoryID")){
+        if (intent.hasExtra("categoryID")) {
             categoryID = Integer.valueOf(intent.getStringExtra("categoryID"));
             System.out.println("has extra Category ID = " + categoryID);
             String tmpCategorie = DB_Budget.getStringBudgetWithID(String.valueOf(categoryID));
@@ -167,8 +188,8 @@ public class NewExpensesActivity extends AppCompatActivity {
                 AlertDialog.Builder builder = new AlertDialog.Builder(NewExpensesActivity.this);
                 builder.setTitle(R.string.pick_category);
 
-                if(data.getCount() > 0) {
-                    final HashMap<Integer,String> categoriesWithID = DB_Budget.getBudgetList();
+                if (data.getCount() > 0) {
+                    final HashMap<Integer, String> categoriesWithID = DB_Budget.getBudgetList();
                     final String[] categories = new String[categoriesWithID.size()];
                     final int[] IDs = new int[categoriesWithID.size()];
                     int i = 0;
@@ -176,7 +197,7 @@ public class NewExpensesActivity extends AppCompatActivity {
 
                     Iterator it = categoriesWithID.entrySet().iterator();
                     while (it.hasNext()) {
-                        HashMap.Entry budget = (HashMap.Entry)it.next();
+                        HashMap.Entry budget = (HashMap.Entry) it.next();
                         IDs[i] = (Integer) budget.getKey();
                         categories[i] = (String) budget.getValue();
                         it.remove(); // avoids a ConcurrentModificationException
@@ -190,16 +211,15 @@ public class NewExpensesActivity extends AppCompatActivity {
                             categoryID = IDs[which];
                         }
                     });
-                }
-                else{
+                } else {
                     builder.setMessage(R.string.empty_category_db);
-                    builder.setNegativeButton(R.string.cancel,null);
+                    builder.setNegativeButton(R.string.cancel, null);
                     builder.setPositiveButton(R.string.add, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             Intent intent = new Intent(NewExpensesActivity.this, NewCategoriesActivity.class);
                             intent.putExtra("requestCode", REQUEST_NEW_CATEGORY);
-                            startActivityForResult(intent,REQUEST_NEW_CATEGORY);
+                            startActivityForResult(intent, REQUEST_NEW_CATEGORY);
                         }
                     });
                 }
@@ -224,10 +244,10 @@ public class NewExpensesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if (checkInputValidity()){
+                if (checkInputValidity()) {
 
                     String repeat = "0"; //dépense unique par défaut
-                    if(recurrenceButton.isChecked()){
+                    if (recurrenceButton.isChecked()) {
                         repeat = "1";
                     }
 
@@ -304,9 +324,9 @@ public class NewExpensesActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch(requestCode){
+        switch (requestCode) {
             case REQUEST_NEW_CATEGORY:
-                if(resultCode == RESULT_OK){
+                if (resultCode == RESULT_OK) {
                     String name = data.getStringExtra("newCategoryName");
                     categoryID = data.getIntExtra("newCategoryID", -1);
                     expenseCategory.getEditText().setText(name);
@@ -347,16 +367,16 @@ public class NewExpensesActivity extends AppCompatActivity {
         return allGood;
     }
 
-    public void updateDate(String date){
+    public void updateDate(String date) {
         expenseDate.getEditText().setText(date);
     }
 
     // Partie Menu (Editer, supprimer)
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-       if (getIntent().getBooleanExtra("requestModifyData",false)) {
-           getMenuInflater().inflate(R.menu.expenses_menu, menu);
-       }
+        if (getIntent().getBooleanExtra("requestModifyData", false)) {
+            getMenuInflater().inflate(R.menu.expenses_menu, menu);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -387,169 +407,6 @@ public class NewExpensesActivity extends AppCompatActivity {
         fragment.show(getSupportFragmentManager(), "datePicker");
     }
 
-    public static String fixUppercase(String str){
-        if (str.length() > 1){
-            String trimStr = str.trim();
-            String newStr = trimStr.substring(0, 1).toUpperCase() + trimStr.toLowerCase().substring(1);
-            return newStr;
-        }
-        return "";
-    }
-
-    public static String fixShortYear(String year){
-        String newYear = year;
-        if (year.length() == 2){
-            newYear = "20" + year;
-        }
-        return newYear;
-    }
-
-    public static String fixDate(String date){
-        String newDate = date;
-        if(date.substring(0,1).equals("0")){
-            newDate = date.substring(1,2);
-        }
-        return newDate;
-    }
-
-    /*********
-     *  API  *
-     *********/
-    private class LoadDataFromImage extends AsyncTask<String, Integer, String> {
-        private Context ctx;
-
-        long startTime = System.currentTimeMillis();
-        long elapsedTime = 0;
-
-        public LoadDataFromImage(Context context) {
-            ctx = context;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            mDialog = new ProgressDialog(ctx);
-            mDialog.setMessage("Analyse de la photo ...");
-            mDialog.setCancelable(false);
-            mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-            mDialog.show();
-        }
-
-        @Override
-        protected String doInBackground(String... photoBase64) {
-            // A RECUPERER : logoAnnotations/description & textannotations/description
-
-            Vision.Builder visionBuilder = new Vision.Builder(new NetHttpTransport(), new AndroidJsonFactory(), null);
-            String cleAPI = "AIzaSyCtMmGlTBQgA28OMFv8ZeCxSkVIh7-9vPk"; // CLE PRIVEE ---> vous DEVEZ vous procurer votre propre clé avec Google
-            visionBuilder.setVisionRequestInitializer(new VisionRequestInitializer(cleAPI));
-            vision = visionBuilder.build();
-
-            // Type d'analyse d'image
-            Feature featureLogo = new Feature();
-            Feature featureText = new Feature();
-            featureLogo.setType("LOGO_DETECTION");
-            featureText.setType("TEXT_DETECTION");
-
-            Image inputImage = new Image();
-            inputImage.encodeContent(com.google.api.client.util.Base64.decodeBase64(photoBase64[0]));
-            AnnotateImageRequest request = new AnnotateImageRequest();
-            request.setImage(inputImage);
-            request.setFeatures(Arrays.asList(featureLogo, featureText));
-            try {
-                System.out.println("Requete: " + request.toPrettyString());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            BatchAnnotateImagesRequest batchRequest = new BatchAnnotateImagesRequest();
-            batchRequest.setRequests(Arrays.asList(request));
-
-            // Réponse du serveur
-            BatchAnnotateImagesResponse batchResponse = new BatchAnnotateImagesResponse();
-            try {
-                batchResponse = vision.images().annotate(batchRequest).execute();
-            } catch (IOException e) {
-                Toast.makeText(getApplicationContext(), "Impossible d'accéder à la reconnaissance de textes", Toast.LENGTH_LONG).show();
-                Log.d("API Run :", e.toString());
-            }
-
-            final TextAnnotation text = batchResponse.getResponses().get(0).getFullTextAnnotation();
-            final List<EntityAnnotation> logo = batchResponse.getResponses().get(0).getLogoAnnotations();
-
-            // Affichage de la réponse logo
-            String result = "";
-
-            if (logo != null) {
-                result += logo.get(0).getDescription();
-            }
-            else{
-                result += " ";
-            }
-            result += "-#-"; //Séparateur
-
-            // Affichage du texte
-            if (text != null) {
-                String textReceived = text.getText();
-                System.out.println(textReceived);
-                elapsedTime = ((new Date()).getTime() - startTime) / 1000;
-                result += textReceived;
-            }
-            else{
-                result += " ";
-            }
-            String finalResult = fixUppercase(result);
-            System.out.println("resultFinal = " + finalResult);
-            return finalResult;
-        }
-
-        protected void onProgressUpdate(Integer... progress) {
-            mDialog.setProgress(progress[0]);
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            mDialog.dismiss();
-            String[] reponse = result.split("-#-");
-            String logo = reponse[0];
-            String text = reponse[1];
-            String montant = "";
-
-            // Détecte un pattern (total digit.digit)
-            Pattern pattern = Pattern.compile("\\b(TOTAL|Total|total)(\\s)*+(\\d)+.(\\d)+");
-            Matcher matcher = pattern.matcher(text);
-
-            if (matcher.find()) {
-                for(int i = 0; i < matcher.groupCount(); i++){
-                    System.out.println("group "+i +": "+matcher.group(i));
-                }
-                // Extrait le montant
-                String totalText = matcher.group(0);
-                Pattern patternMontant = Pattern.compile("(\\s)*+(\\d)+.(\\d)+");
-                Matcher matcherMontant = patternMontant.matcher(totalText);
-
-                if (matcherMontant.find()){
-                    montant = (matcherMontant.group(0)).trim();
-                }
-            }
-
-            // Détecte la date
-            Pattern patternDate = Pattern.compile("\\d\\d(\\s)*/(\\s)*\\d\\d(\\s)*/(\\s)*(\\d{4}|\\d{2})");
-            Matcher matcherDate = patternDate.matcher(text);
-            if (matcherDate.find()) {
-                System.out.println("dateRegex = " + matcherDate.group(0));
-                String[] date = matcherDate.group(0).trim().split("/");
-                String newDate = fixDate(date[1]) +  MainActivity.getMonthFromNb(date[0], getApplicationContext()) + fixShortYear(date[2]);
-                expenseDate.getEditText().setText(newDate);
-            }
-
-            expenseName.getEditText().setText(logo);
-            expenseAmountValue.setText(montant);
-
-            Toast.makeText(getApplicationContext(), String.format("Analyse effectuée en %.1f s", (float) elapsedTime), Toast.LENGTH_SHORT).show();
-        }
-
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -563,6 +420,171 @@ public class NewExpensesActivity extends AppCompatActivity {
         super.onPause();
         if (mDialog != null) {
             mDialog.dismiss();
+        }
+    }
+
+    /*********
+     *  API  *
+     *********/
+    private class LoadDataFromImage extends AsyncTask<String, Integer, String> {
+        long startTime = System.currentTimeMillis();
+        long elapsedTime = 0;
+        private Context ctx;
+
+        public LoadDataFromImage(Context context) {
+            ctx = context;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            mDialog = new ProgressDialog(ctx);
+            mDialog.setMessage(getString(R.string.photo_analysis));
+            mDialog.setCancelable(false);
+            mDialog.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                    Toast.makeText(getApplicationContext(), R.string.photo_analysis_cancelled, Toast.LENGTH_LONG).show();
+                    cancel(true);
+                }
+            });
+            mDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            mDialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... photoBase64) {
+            while(!isCancelled()) {
+                // A RECUPERER : logoAnnotations/description & textannotations/description
+                Vision.Builder visionBuilder = new Vision.Builder(new NetHttpTransport(), new AndroidJsonFactory(), null);
+                String cleAPI = "AIzaSyCtMmGlTBQgA28OMFv8ZeCxSkVIh7-9vPk"; // CLE PRIVEE ---> vous DEVEZ vous procurer votre propre clé avec Google
+                visionBuilder.setVisionRequestInitializer(new VisionRequestInitializer(cleAPI));
+                vision = visionBuilder.build();
+
+                // Type d'analyse d'image
+                Feature featureLogo = new Feature();
+                Feature featureText = new Feature();
+                featureLogo.setType("LOGO_DETECTION");
+                featureText.setType("TEXT_DETECTION");
+
+                Image inputImage = new Image();
+                inputImage.encodeContent(com.google.api.client.util.Base64.decodeBase64(photoBase64[0]));
+                AnnotateImageRequest request = new AnnotateImageRequest();
+                request.setImage(inputImage);
+                request.setFeatures(Arrays.asList(featureLogo, featureText));
+                try {
+                    System.out.println("Requete: " + request.toPrettyString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                BatchAnnotateImagesRequest batchRequest = new BatchAnnotateImagesRequest();
+                batchRequest.setRequests(Arrays.asList(request));
+
+                // Réponse du serveur
+                BatchAnnotateImagesResponse batchResponse = new BatchAnnotateImagesResponse();
+                try {
+                    batchResponse = vision.images().annotate(batchRequest).execute();
+
+                } catch (IOException e) {
+                    Toast.makeText(getApplicationContext(), "Impossible d'accéder à la reconnaissance de textes", Toast.LENGTH_LONG).show();
+                    Log.d("API Run :", e.toString());
+                }
+
+                final TextAnnotation text = batchResponse.getResponses().get(0).getFullTextAnnotation();
+                final List<EntityAnnotation> logo = batchResponse.getResponses().get(0).getLogoAnnotations();
+
+                // Affichage de la réponse logo
+                String result = "";
+
+                if (logo != null) {
+                    result += logo.get(0).getDescription();
+                } else {
+                    result += " ";
+                }
+                result += "-#-"; //Séparateur
+
+                // Affichage du texte
+                if (text != null) {
+                    String textReceived = text.getText();
+                    System.out.println(textReceived);
+                    elapsedTime = ((new Date()).getTime() - startTime) / 1000;
+                    result += textReceived;
+                } else {
+                    result += " ";
+                }
+                String finalResult = fixUppercase(result);
+                System.out.println("resultFinal = " + finalResult);
+                return finalResult;
+            }
+            return null;
+        }
+
+        protected void onProgressUpdate(Integer... progress) {
+            mDialog.setProgress(progress[0]);
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            mDialog.dismiss();
+            String[] reponse = result.split("-#-");
+            System.out.println("RESULT API -------) " + result);
+            String logo = "";
+            String text = "";
+
+            if (!result.equals("-#-")) {
+                //Tentative de lecture du logo
+                try {
+                    logo = reponse[0];
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    e.printStackTrace();
+                }
+
+                //Tentative de lecture du texte
+                try {
+                    text = reponse[1];
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    e.printStackTrace();
+                }
+            }
+            String montant = "";
+
+            // Détecte un pattern (total digit.digit)
+            Pattern pattern = Pattern.compile("\\b(TOTAL|Total|total)(\\s)*+(\\d)+.(\\d)+");
+            Matcher matcher = pattern.matcher(text);
+
+            if (matcher.find()) {
+                for (int i = 0; i < matcher.groupCount(); i++) {
+                    System.out.println("group " + i + ": " + matcher.group(i));
+                }
+                // Extrait le montant
+                String totalText = matcher.group(0);
+                Pattern patternMontant = Pattern.compile("(\\s)*+(\\d)+.(\\d)+");
+                Matcher matcherMontant = patternMontant.matcher(totalText);
+
+                if (matcherMontant.find()) {
+                    montant = (matcherMontant.group(0)).trim();
+                }
+            }
+
+            // Détecte la date
+            Pattern patternDate = Pattern.compile("\\d\\d(\\s)*/(\\s)*\\d\\d(\\s)*/(\\s)*(\\d{4}|\\d{2})");
+            Matcher matcherDate = patternDate.matcher(text);
+            if (matcherDate.find()) {
+                System.out.println("dateRegex = " + matcherDate.group(0));
+                String[] date = matcherDate.group(0).trim().split("/");
+                String newDate = fixShortYear(date[2]) + "-" + fixDate(date[1]) + "-" + date[0];
+                expenseDate.getEditText().setText(newDate);
+            }
+
+            expenseName.getEditText().setText(logo);
+            expenseAmountValue.setText(montant);
+        }
+
+        @Override
+        protected void onCancelled() {
+            cancel(true);
         }
     }
 }

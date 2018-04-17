@@ -49,13 +49,6 @@
         </activity>
 
         <activity
-            android:name=".CategorieDetailsActivity"
-            android:parentActivityName=".MainActivity"
-            android:label="@string/categorieNameActivity"
-            android:screenOrientation="portrait">
-        </activity>
-
-        <activity
             android:name=".ExpensesRelativeToBudget"
             android:parentActivityName=".MainActivity"
             android:label="Dépenses liées au Budget : "

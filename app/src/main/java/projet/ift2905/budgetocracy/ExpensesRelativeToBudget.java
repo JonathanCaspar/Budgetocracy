@@ -35,7 +35,7 @@ public class ExpensesRelativeToBudget extends AppCompatActivity {
 
     final int REQUEST_EXPENSE_DATA = 103;
     final int REQUEST_MODIFICATION_EXPENSE_DATA = 105;
-    final int REQUEST_MODIFICATION_BUDGET_DATA  = 106;
+    final int REQUEST_MODIFICATION_BUDGET_DATA = 106;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +44,9 @@ public class ExpensesRelativeToBudget extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.expense_relative_to_budget);
-
         setSupportActionBar((Toolbar) findViewById(R.id.toolbar));
+
+        // Accès aux views
         mListViewExpenseB = findViewById(R.id.lstExpensesRelativeToBudget);
         addExpenseButton = findViewById(R.id.floatingAddExpense);
         rLay = findViewById(R.id.popupNoExpense);
@@ -76,31 +77,33 @@ public class ExpensesRelativeToBudget extends AppCompatActivity {
 
                 final AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
                 builder.setCancelable(true);
+                builder.setTitle(((Cursor)parent.getAdapter().getItem(position)).getString(1));
+                builder.setIcon(R.drawable.ic_edit_black_24dp);
                 builder.setItems(list, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
 
-                        switch(which){
+                        switch (which) {
                             case 0: // Modification
                                 Intent modifyExpense = new Intent(ExpensesRelativeToBudget.this, NewExpensesActivity.class);
                                 modifyExpense.putExtra("requestModifyData", true);
-                                modifyExpense.putExtra("idExpenseToModify",expenseID);
-                                startActivityForResult(modifyExpense,REQUEST_MODIFICATION_EXPENSE_DATA);
+                                modifyExpense.putExtra("idExpenseToModify", expenseID);
+                                startActivityForResult(modifyExpense, REQUEST_MODIFICATION_EXPENSE_DATA);
                                 break;
 
                             case 1: // Suppression
                                 Cursor expenseData = dbHelper_expenses.getExpense(expenseID); // Toutes les informations de la dépense sélectionné
 
-                                if(expenseData != null){
+                                if (expenseData != null) {
                                     String expenseDate = expenseData.getString(4).split("-")[1];
-                                    if(MainActivity.isSameMonthAsCurrent(expenseDate)){
+                                    if (MainActivity.isSameMonthAsCurrent(expenseDate)) {
                                         // Mets à jour le reste du budget associé à la dépense si cette dernière et enregistré pour le mois courant
                                         dbHelper_budget.increaseRemainingAmount(expenseData.getInt(2), expenseData.getFloat(3));
                                     }
                                     dbHelper_expenses.deleteData(expenseID);
                                     loadCursor(categoryID);
                                     checkIfEmpty();
-                                    Toast.makeText(getApplicationContext(),R.string.successful_expense_deleted, Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getApplicationContext(), R.string.successful_expense_deleted, Toast.LENGTH_SHORT).show();
 
                                 }
                                 break;
@@ -109,25 +112,24 @@ public class ExpensesRelativeToBudget extends AppCompatActivity {
                                 break;
                         }
                     }
-                }) ;
+                });
                 builder.show();
             }
         });
     }
 
     // Refresh la view
-    public void loadCursor(String ID){
+    public void loadCursor(String ID) {
         cursorB = dbHelper_expenses.getExpensesAssociateToBudget(ID);
-        cursorExpenseRelatToB = new CustomAdapterExpenseRelativeToBudget(this,cursorB);
+        cursorExpenseRelatToB = new CustomAdapterExpenseRelativeToBudget(this, cursorB);
         mListViewExpenseB.setAdapter((ListAdapter) cursorExpenseRelatToB);
     }
 
-    public void checkIfEmpty(){
+    public void checkIfEmpty() {
         // Si notre budget ne contient pas de dépense
-        if (mListViewExpenseB.getCount()==0){
+        if (mListViewExpenseB.getCount() == 0) {
             rLay.setVisibility(View.VISIBLE);
-        }
-        else{
+        } else {
             rLay.setVisibility(View.GONE);
         }
     }
@@ -141,19 +143,19 @@ public class ExpensesRelativeToBudget extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.editOptions:
                 // On appelle l'activité pour modifier la dépense (qui est en soit l'activité de création de dépense, auxquelle on fourni un extra particulier)
                 Intent modifyExpense = new Intent(ExpensesRelativeToBudget.this, NewCategoriesActivity.class);
                 modifyExpense.putExtra("requestModifyData", true);
-                modifyExpense.putExtra("idBudgetToModify",categoryID);
+                modifyExpense.putExtra("idBudgetToModify", categoryID);
                 startActivityForResult(modifyExpense, REQUEST_MODIFICATION_BUDGET_DATA);
                 break;
 
             case R.id.deleteOptions:
                 Cursor expensesOfBudget = dbHelper_expenses.getExpensesAssociateToBudget(categoryID); // Toutes les informations du budget sélectionné
-                if(expensesOfBudget != null){
-                    if(expensesOfBudget.getCount() > 0){
+                if (expensesOfBudget != null) {
+                    if (expensesOfBudget.getCount() > 0) {
                         // Afficher un message avisant l'utilisateur de la suppression des dépenses associées
                         final AlertDialog.Builder message = new AlertDialog.Builder(ExpensesRelativeToBudget.this);
                         message.setCancelable(true);
@@ -166,14 +168,13 @@ public class ExpensesRelativeToBudget extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 dbHelper_budget.deleteData(categoryID);
                                 dbHelper_expenses.deleteExpensesOfBudget(categoryID);
-                                Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_budget_deleted, Snackbar.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), R.string.successful_budget_deleted, Toast.LENGTH_SHORT).show();
                                 finish();
                             }
                         });
                         message.show();
                     }
-                }
-                else{
+                } else {
                     // Afficher un message avisant l'utilisateur de la suppression des dépenses associées
                     final AlertDialog.Builder message = new AlertDialog.Builder(ExpensesRelativeToBudget.this);
                     message.setCancelable(true);
@@ -185,8 +186,7 @@ public class ExpensesRelativeToBudget extends AppCompatActivity {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             dbHelper_budget.deleteData(categoryID);
-                            Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.successful_budget_deleted, Snackbar.LENGTH_SHORT).show();
-                            finish();
+                            Toast.makeText(getApplicationContext(), R.string.successful_budget_deleted, Toast.LENGTH_SHORT).show();                            finish();
                         }
                     });
                     message.show();
@@ -202,7 +202,7 @@ public class ExpensesRelativeToBudget extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
             case REQUEST_MODIFICATION_EXPENSE_DATA:
-                if (resultCode == RESULT_OK && data !=null){
+                if (resultCode == RESULT_OK && data != null) {
                     String[] dataToModify = data.getStringArrayExtra("dataToSave");
                     String idExpense = data.getStringExtra("idExpenseToModify");
                     Float oldExpenseValue = data.getFloatExtra("oldExpenseValue", 0);
@@ -210,11 +210,11 @@ public class ExpensesRelativeToBudget extends AppCompatActivity {
                     String expenseMonth = dataToModify[3].split("-")[1];
                     Integer categoryID = Integer.valueOf(dataToModify[1]);
 
-                    if(MainActivity.isSameMonthAsCurrent(expenseMonth)){
+                    if (MainActivity.isSameMonthAsCurrent(expenseMonth)) {
                         dbHelper_budget.increaseRemainingAmount(categoryID, oldExpenseValue);
                         dbHelper_budget.substractRemainingAmount(categoryID, Float.valueOf(dataToModify[2]));
                     }
-                    dbHelper_expenses.updateData(idExpense,dataToModify[0],categoryID,Float.valueOf(dataToModify[2]), dataToModify[3]);
+                    dbHelper_expenses.updateData(idExpense, dataToModify[0], categoryID, Float.valueOf(dataToModify[2]), dataToModify[3]);
                     Toast.makeText(getApplicationContext(), R.string.successful_expense_modification, Toast.LENGTH_LONG).show();
 
                     loadCursor(String.valueOf(categoryID));
@@ -247,12 +247,12 @@ public class ExpensesRelativeToBudget extends AppCompatActivity {
                     Integer budgetID = Integer.valueOf(dataToAdd[1]);
                     String expenseMonth = dataToAdd[3].split("-")[1];
 
-                    if(MainActivity.isSameMonthAsCurrent(expenseMonth)){
+                    if (MainActivity.isSameMonthAsCurrent(expenseMonth)) {
                         dbHelper_budget.substractRemainingAmount(budgetID, Float.valueOf(dataToAdd[2]));
                     }
                     dbHelper_expenses.insertDataName(dataToAdd[0], budgetID, Float.valueOf(dataToAdd[2]), dataToAdd[3]);
 
-                    if(dataToAdd[1].equals(categoryID)) {// Si la dépense ajoutéé est liée au budget actuellement affiché : rafraichir
+                    if (dataToAdd[1].equals(categoryID)) {// Si la dépense ajoutéé est liée au budget actuellement affiché : rafraichir
                         loadCursor(categoryID);
                     }
                     checkIfEmpty();

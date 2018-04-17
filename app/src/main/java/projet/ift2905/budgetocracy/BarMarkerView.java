@@ -28,7 +28,7 @@ public class BarMarkerView extends MarkerView {
     @Override
     public void refreshContent(Entry e, Highlight highlight) {
         cursor.moveToFirst();
-        cursor.move((int)e.getX()-1);
+        cursor.move((int) e.getX() - 1);
         tvContent.setText(cursor.getString(1));
 
         super.refreshContent(e, highlight);

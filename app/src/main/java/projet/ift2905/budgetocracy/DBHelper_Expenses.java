@@ -24,131 +24,114 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String sql = "CREATE TABLE " + TABLE_NAME + " ("
-                +COL_EXPENSES_0+" INTEGER PRIMARY KEY AUTOINCREMENT  , "
-                +COL_EXPENSES_1+" TEXT , "
-                +COL_EXPENSES_2+" INTEGER , "
-                +COL_EXPENSES_3+" FLOAT , "
-                +COL_EXPENSES_4+" TEXT ) ";
+                + COL_EXPENSES_0 + " INTEGER PRIMARY KEY AUTOINCREMENT  , "
+                + COL_EXPENSES_1 + " TEXT , "
+                + COL_EXPENSES_2 + " INTEGER , "
+                + COL_EXPENSES_3 + " FLOAT , "
+                + COL_EXPENSES_4 + " TEXT ) ";
         db.execSQL(sql);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        String sql = "DROP TABLE IF EXISTS "+ TABLE_NAME;
+        String sql = "DROP TABLE IF EXISTS " + TABLE_NAME;
         db.execSQL(sql);
         onCreate(db);
     }
 
     /**** EXEMPLE INSERT  *****/
-    public boolean insertDataName(String name, Integer category, float amount, String date){
+    public boolean insertDataName(String name, Integer category, float amount, String date) {
         SQLiteDatabase db = this.getReadableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(COL_EXPENSES_1,name);
-        contentValues.put(COL_EXPENSES_2,category);
-        contentValues.put(COL_EXPENSES_3,amount);
-        contentValues.put(COL_EXPENSES_4,date);
-        long result = db.insert(TABLE_NAME,null,contentValues);
-        if (result==-1) return false;
+        contentValues.put(COL_EXPENSES_1, name);
+        contentValues.put(COL_EXPENSES_2, category);
+        contentValues.put(COL_EXPENSES_3, amount);
+        contentValues.put(COL_EXPENSES_4, date);
+        long result = db.insert(TABLE_NAME, null, contentValues);
+        if (result == -1) return false;
         return true;
     }
 
-    public Cursor getAllData(){
+    public Cursor getAllData() {
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.rawQuery("select * from "+ TABLE_NAME,null);
+        return db.rawQuery("select * from " + TABLE_NAME, null);
     }
 
-    public String getAllStringData(){
-        /** Cursor is the pointer that traverse the data*/
-        Cursor result = this.getAllData();
-
-        /** Buffer will stock the data filtred from the DATABASE*/
-        StringBuffer buffer = new StringBuffer();
-        while (result.moveToNext()) {
-            buffer.append("ID: " + result.getString(0) + " - ");
-            buffer.append("NAME: " + result.getString(1) + " - ");
-            buffer.append("CATEGORY_ID: " + String.valueOf(result.getInt(2)) + " - ");
-            buffer.append("AMOUNT: " + result.getString(3) + " - ");
-            buffer.append("DATE: " + result.getString(4) + "\n\n");
-        }
-        return buffer.toString();
-    }
-
-    public Boolean updateData(String id,String name, Integer categoryID, float amount, String date ){
+    public Boolean updateData(String id, String name, Integer categoryID, float amount, String date) {
         SQLiteDatabase db = this.getReadableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(COL_EXPENSES_0,id);
-        contentValues.put(COL_EXPENSES_1,name);
-        contentValues.put(COL_EXPENSES_2,categoryID);
-        contentValues.put(COL_EXPENSES_3,amount);
-        contentValues.put(COL_EXPENSES_4,date);
-        db.update(TABLE_NAME,contentValues,"_id = ?",new String[] {id});
+        contentValues.put(COL_EXPENSES_0, id);
+        contentValues.put(COL_EXPENSES_1, name);
+        contentValues.put(COL_EXPENSES_2, categoryID);
+        contentValues.put(COL_EXPENSES_3, amount);
+        contentValues.put(COL_EXPENSES_4, date);
+        db.update(TABLE_NAME, contentValues, "_id = ?", new String[]{id});
         return true;
     }
 
-    public Integer deleteData (String id) {
+    public Integer deleteData(String id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(TABLE_NAME, "_id = ?",new String[] {id});
+        return db.delete(TABLE_NAME, "_id = ?", new String[]{id});
     }
 
     public void deleteDataBase() {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DELETE FROM "+ TABLE_NAME); //delete all rows in a table
+        db.execSQL("DELETE FROM " + TABLE_NAME); //delete all rows in a table
         db.execSQL("UPDATE SQLITE_SEQUENCE SET SEQ=0 WHERE NAME='expenses_table'"); //reset the primary keys
     }
 
-    public Cursor getExpenseListByKeyword (String search, EnumSort sort){
+    public Cursor getExpenseListByKeyword(String search, EnumSort sort) {
         //Open connection to read only
         SQLiteDatabase db = this.getReadableDatabase();
-        String selectQuery="";
+        String selectQuery = "";
 
-        switch (sort.getSort()){
+        switch (sort.getSort()) {
             case sortByDate:
-                selectQuery =  "SELECT  rowid as " +
+                selectQuery = "SELECT  rowid as " +
                         DBHelper_Expenses.COL_EXPENSES_0 + "," +
                         DBHelper_Expenses.COL_EXPENSES_1 + "," +
                         DBHelper_Expenses.COL_EXPENSES_2 + "," +
                         DBHelper_Expenses.COL_EXPENSES_3 + "," +
                         DBHelper_Expenses.COL_EXPENSES_4 +
-                        " FROM " + DBHelper_Expenses.TABLE_NAME+
-                        " WHERE " +  DBHelper_Expenses.COL_EXPENSES_1 + "  LIKE  '%" +search + "%' "+
+                        " FROM " + DBHelper_Expenses.TABLE_NAME +
+                        " WHERE " + DBHelper_Expenses.COL_EXPENSES_1 + "  LIKE  '%" + search + "%' " +
                         " ORDER BY DATE(" + DBHelper_Expenses.COL_EXPENSES_4 + ")"
-                        ;
+                ;
 
                 break;
             case sortByAmount:
-                selectQuery =  "SELECT  rowid as " +
+                selectQuery = "SELECT  rowid as " +
                         DBHelper_Expenses.COL_EXPENSES_0 + "," +
                         DBHelper_Expenses.COL_EXPENSES_1 + "," +
                         DBHelper_Expenses.COL_EXPENSES_2 + "," +
                         DBHelper_Expenses.COL_EXPENSES_3 + "," +
                         DBHelper_Expenses.COL_EXPENSES_4 +
-                        " FROM " + DBHelper_Expenses.TABLE_NAME+
-                        " WHERE " +  DBHelper_Expenses.COL_EXPENSES_1 + "  LIKE  '%" +search + "%' "+
+                        " FROM " + DBHelper_Expenses.TABLE_NAME +
+                        " WHERE " + DBHelper_Expenses.COL_EXPENSES_1 + "  LIKE  '%" + search + "%' " +
                         " ORDER BY " + DBHelper_Expenses.COL_EXPENSES_3
-                        ;
+                ;
 
                 break;
 
             case sortByName:
-                selectQuery =  "SELECT  rowid as " +
+                selectQuery = "SELECT  rowid as " +
                         DBHelper_Expenses.COL_EXPENSES_0 + "," +
                         DBHelper_Expenses.COL_EXPENSES_1 + "," +
                         DBHelper_Expenses.COL_EXPENSES_2 + "," +
                         DBHelper_Expenses.COL_EXPENSES_3 + "," +
                         DBHelper_Expenses.COL_EXPENSES_4 +
-                        " FROM " + DBHelper_Expenses.TABLE_NAME+
-                        " WHERE " +  DBHelper_Expenses.COL_EXPENSES_1 + "  LIKE  '%" +search + "%' "+
+                        " FROM " + DBHelper_Expenses.TABLE_NAME +
+                        " WHERE " + DBHelper_Expenses.COL_EXPENSES_1 + "  LIKE  '%" + search + "%' " +
                         " ORDER BY " + DBHelper_Expenses.COL_EXPENSES_1
-                        ;
+                ;
                 break;
 
-            default :
+            default:
                 break;
         }
 
         Cursor cursor = db.rawQuery(selectQuery, null);
         // looping through all rows and adding to list
-
         if (cursor == null) {
             return null;
         } else if (!cursor.moveToFirst()) {
@@ -159,17 +142,16 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
     }
 
 
-    public String getNameExpenseWithID (String id) {
+    public String getNameExpenseWithID(String id) {
         //Open connection to read only
         SQLiteDatabase db = this.getReadableDatabase();
 
         String selectQuery = "SELECT " +
                 DBHelper_Expenses.COL_EXPENSES_1 +
                 " FROM " + DBHelper_Expenses.TABLE_NAME +
-                " WHERE _id = " + id
-        ;
+                " WHERE _id = " + id;
         //return db.execSQL(selectQuery);
-        Cursor cursor =  db.rawQuery(selectQuery, null);
+        Cursor cursor = db.rawQuery(selectQuery, null);
 
         if (cursor == null) {
             return null;
@@ -182,80 +164,10 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
 
     }
 
-    public String getCategorieExpenseWithID (String id) {
-        //Open connection to read only
+    public Cursor getExpensesAssociateToBudget(String idBudget) {
         SQLiteDatabase db = this.getReadableDatabase();
-
-        String selectQuery = "SELECT " +
-                DBHelper_Expenses.COL_EXPENSES_2 +
-                " FROM " + DBHelper_Expenses.TABLE_NAME  +
-                " WHERE _id = " + id
-        ;
-        //return db.execSQL(selectQuery);
-        Cursor cursor =  db.rawQuery(selectQuery, null);
-
-        if (cursor == null) {
-            return null;
-        } else if (!cursor.moveToFirst()) {
-            cursor.close();
-            return null;
-        }
-
-        return cursor.getString(0);
-
-    }
-
-
-    public String getAmountExpenseWithID (String id) {
-        //Open connection to read only
-        SQLiteDatabase db = this.getReadableDatabase();
-
-        String selectQuery = "SELECT " +
-                DBHelper_Expenses.COL_EXPENSES_3 +
-                " FROM " + DBHelper_Expenses.TABLE_NAME  +
-                " WHERE _id = " + id
-        ;
-        //return db.execSQL(selectQuery);
-        Cursor cursor =  db.rawQuery(selectQuery, null);
-
-        if (cursor == null) {
-            return null;
-        } else if (!cursor.moveToFirst()) {
-            cursor.close();
-            return null;
-        }
-
-        return cursor.getString(0);
-
-    }
-
-    public String getDateExpenseWithID (String id) {
-        //Open connection to read only
-        SQLiteDatabase db = this.getReadableDatabase();
-        String selectQuery = "SELECT " +
-                DBHelper_Expenses.COL_EXPENSES_4 +
-                " FROM " + DBHelper_Expenses.TABLE_NAME  +
-                " WHERE _id = " + id
-        ;
-        //return db.execSQL(selectQuery);
-        Cursor cursor =  db.rawQuery(selectQuery, null);
-
-        if (cursor == null) {
-            return null;
-        } else if (!cursor.moveToFirst()) {
-            cursor.close();
-            return null;
-        }
-
-        return cursor.getString(0);
-
-    }
-
-    public Cursor getExpensesAssociateToBudget (String idBudget){
-        SQLiteDatabase db = this.getReadableDatabase();
-        String selectQuery = "SELECT * FROM " + DBHelper_Expenses.TABLE_NAME  +
-                " WHERE "+ DBHelper_Expenses.COL_EXPENSES_2 +"=" + idBudget
-        ;
+        String selectQuery = "SELECT * FROM " + DBHelper_Expenses.TABLE_NAME +
+                " WHERE " + DBHelper_Expenses.COL_EXPENSES_2 + "=" + idBudget;
 
         Cursor cursor = db.rawQuery(selectQuery, null);
         // looping through all rows and adding to list
@@ -270,11 +182,10 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
     }
 
 
-    public Cursor getExpense(String id){
+    public Cursor getExpense(String id) {
         SQLiteDatabase db = this.getReadableDatabase();
-        String selectQuery = "SELECT * FROM " + DBHelper_Expenses.TABLE_NAME  +
-                " WHERE "+ DBHelper_Expenses.COL_EXPENSES_0 +"="+ id
-        ;
+        String selectQuery = "SELECT * FROM " + DBHelper_Expenses.TABLE_NAME +
+                " WHERE " + DBHelper_Expenses.COL_EXPENSES_0 + "=" + id;
 
         Cursor cursor = db.rawQuery(selectQuery, null);
         // looping through all rows and adding to list
@@ -290,6 +201,6 @@ public class DBHelper_Expenses extends SQLiteOpenHelper {
 
     public void deleteExpensesOfBudget(String budgetId) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DELETE FROM "+TABLE_NAME+ " WHERE "+ COL_EXPENSES_2 + "="+budgetId);
+        db.execSQL("DELETE FROM " + TABLE_NAME + " WHERE " + COL_EXPENSES_2 + "=" + budgetId);
     }
 }

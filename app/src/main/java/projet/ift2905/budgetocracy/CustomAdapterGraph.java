@@ -18,12 +18,8 @@ import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.utils.ColorTemplate;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
-import java.util.prefs.Preferences;
 
 /**
  * Created by Max on 2018-03-27.
@@ -34,13 +30,13 @@ public class CustomAdapterGraph extends CursorAdapter {
     PieChart pieChart;
     TextView categoryText;
 
-    public CustomAdapterGraph (Context context, Cursor c){
-        super(context,c);
+    public CustomAdapterGraph(Context context, Cursor c) {
+        super(context, c);
     }
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        return LayoutInflater.from(context).inflate(R.layout.item_graphics,parent,false);
+        return LayoutInflater.from(context).inflate(R.layout.item_graphics, parent, false);
     }
 
 
@@ -49,7 +45,7 @@ public class CustomAdapterGraph extends CursorAdapter {
 
         categoryText = (TextView) view.findViewById(R.id.textView5);
         categoryText.setText(cursor.getString(1));
-        String currency = PreferenceManager.getDefaultSharedPreferences(context).getString("currency","$");
+        String currency = PreferenceManager.getDefaultSharedPreferences(context).getString("currency", "$");
 
         // Piechart configuration
         pieChart = (PieChart) view.findViewById(R.id.piechart_1);
@@ -73,16 +69,16 @@ public class CustomAdapterGraph extends CursorAdapter {
         float remaining = Float.parseFloat(cursor.getString(3));
         float usedBudget = budget - remaining;
 
-        SpannableString s = new SpannableString("Budget: "+budget+currency+"\n"+context.getString(R.string.used)+": "+usedBudget+currency+"\n"+context.getString(R.string.left) +": "+remaining+currency);
+        SpannableString s = new SpannableString("Budget: " + budget + currency + "\n" + context.getString(R.string.used) + ": " + usedBudget + currency + "\n" + context.getString(R.string.left) + ": " + remaining + currency);
         s.setSpan(new RelativeSizeSpan(0.8f), 0, s.length(), 0);
-        s.setSpan(new ForegroundColorSpan(Color.rgb(16,176,115)),s.length()-1-Float.toString(remaining).length(), s.length(), 0);
+        s.setSpan(new ForegroundColorSpan(Color.rgb(16, 176, 115)), s.length() - 1 - Float.toString(remaining).length(), s.length(), 0);
         pieChart.setCenterText(s);
 
         // Add the values to the piechart
         ArrayList<PieEntry> yValues = new ArrayList<>();
         yValues.add(new PieEntry(usedBudget, ""));
         yValues.add(new PieEntry(remaining, ""));
-        PieDataSet dataSet = new PieDataSet(yValues,"Budget");
+        PieDataSet dataSet = new PieDataSet(yValues, "Budget");
         dataSet.setSliceSpace(3f);
         dataSet.setSelectionShift(5f);
         dataSet.setValueTextSize(0f);

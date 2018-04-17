@@ -31,7 +31,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -49,6 +48,7 @@ import com.github.mikephil.charting.data.PieEntry;
 import com.ittianyu.bottomnavigationviewex.BottomNavigationViewEx;
 
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -57,44 +57,36 @@ import java.util.Date;
 
 import info.hoang8f.android.segmented.SegmentedGroup;
 
-
-enum typeSort{
+enum typeSort {
     sortByName,
     sortByDate,
     sortByAmount
 }
 
-class EnumSort{
-    typeSort sort;
-
-    public EnumSort(typeSort sort){
-        this.sort=sort;
-    }
-
-    public void changeSort(typeSort newSort){
-        this.sort=newSort;
-    }
-
-    public typeSort getSort(){
-        return sort;
-    }
-
-}
-
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+    final String[] PERMISSIONS = {Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.INTERNET};
+    final int PERMISSION_ALL = 101;
+    final int REQUEST_IMAGE_CAPTURE = 102;
+    final int REQUEST_EXPENSE_DATA = 103;
+    final int REQUEST_BUDGET_DATA = 104;
+    final int REQUEST_MODIFICATION_EXPENSE_DATA = 105;
+    final int REQUEST_MODIFICATION_BUDGET_DATA = 106;
     public SharedPreferences prefs;
-
+    public EnumSort mSort;
     //RECHERCHE
     ListView mListView;
     TextView mEmptyView;
     Cursor cursor;
-    public EnumSort mSort;
+    //LISTE BUDGET MAIN
+    ListView mListViewBudget;
+    Cursor cursorBudget;
     private PieChart pieChart;
     private CustomAdapter customAdapter;
     private RadioButton mButtonDate;
     private RadioButton mButtonAmount;
     private RadioButton mButtonName;
-
     // INTERFACE
     private BottomNavigationViewEx mBottomBar; // Menu de l'écran principal
     private DBHelper_Expenses DB_Expenses;
@@ -102,21 +94,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private TextView navHeaderDate;
     private TextView legend;
     private RelativeLayout groupPieChart;
-
-    //LISTE BUDGET MAIN
-    ListView mListViewBudget;
-    Cursor cursorBudget;
     private CustomAdapterMainBudget customAdapterBudget;
-
-    final String[] PERMISSIONS = {Manifest.permission.CAMERA,
-                                  Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                                  Manifest.permission.INTERNET};
-    final int PERMISSION_ALL = 101;
-    final int REQUEST_IMAGE_CAPTURE = 102;
-    final int REQUEST_EXPENSE_DATA = 103;
-    final int REQUEST_BUDGET_DATA  = 104;
-    final int REQUEST_MODIFICATION_EXPENSE_DATA = 105;
-    final int REQUEST_MODIFICATION_BUDGET_DATA  = 106;
+    private LinearLayout popupNoBudget;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mListViewBudget.setBackground(getDrawable(R.drawable.shadow_listview));
         groupPieChart.setBackground(getDrawable(R.drawable.shadow_listview));
 
-        customAdapterBudget = new CustomAdapterMainBudget(this,cursorBudget);
+        customAdapterBudget = new CustomAdapterMainBudget(this, cursorBudget);
         mListViewBudget.setAdapter((ListAdapter) customAdapterBudget);
         mListViewBudget.setDividerHeight(2);
 
@@ -153,16 +132,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 final AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
                 builder.setCancelable(true);
+                builder.setTitle(((Cursor)parent.getAdapter().getItem(position)).getString(1));
                 builder.setItems(list, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch(which){
+                        switch (which) {
                             case 0: // Modification du budget
                                 // On appelle l'activité pour modifier la dépense (qui est en soit l'activité de création de dépense, auxquelle on fourni un extra particulier)
                                 Intent modifyExpense = new Intent(MainActivity.this, NewCategoriesActivity.class);
                                 modifyExpense.putExtra("requestModifyData", true);
-                                modifyExpense.putExtra("idBudgetToModify",strId);
-                                startActivityForResult(modifyExpense,REQUEST_MODIFICATION_BUDGET_DATA);
+                                modifyExpense.putExtra("idBudgetToModify", strId);
+                                startActivityForResult(modifyExpense, REQUEST_MODIFICATION_BUDGET_DATA);
                                 updateMainListBudget();
                                 pieChartSetup();
                                 break;
@@ -175,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 break;
                         }
                     }
-                }) ;
+                });
                 builder.show();
                 return true;
             }
@@ -205,8 +185,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mButtonName = findViewById(R.id.buttonSortName);
         pieChart = findViewById(R.id.piechart_1);
         legend = findViewById(R.id.pieChartLegend);
+        popupNoBudget = findViewById(R.id.popupNoBudget);
 
         try {
+            // Checking journalier (reset mensuel/dépenses à mettre à jour)
             dailyUpdate();
         } catch (ParseException e) {
             e.printStackTrace();
@@ -221,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getSupportActionBar().setTitle(currentDate);
 
         Calendar cal = Calendar.getInstance();
-        if (navHeaderDate != null){
+        if (navHeaderDate != null) {
             navHeaderDate.setText(getDayOfWeek(cal.get(cal.DAY_OF_WEEK), getApplicationContext()) + currentDate);
         }
 
@@ -236,13 +218,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mBottomBar.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                switch(item.getItemId()){
-                    case R.id.menu_scan :
+                switch (item.getItemId()) {
+                    case R.id.menu_scan:
                         // Si Permission accordée:
-                        if(hasPermissions(getApplicationContext(), PERMISSIONS)){
+                        if (hasPermissions(getApplicationContext(), PERMISSIONS)) {
                             Intent takePhotoIntent = new Intent(MainActivity.this, CameraActivity.class);
                             // Activité Caméra lancée dans l'attente d'une réponse (image)
-                            startActivityForResult(takePhotoIntent ,REQUEST_IMAGE_CAPTURE);
+                            startActivityForResult(takePhotoIntent, REQUEST_IMAGE_CAPTURE);
                             return true;
                         } else {
                             // Sinon: les demander
@@ -279,13 +261,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     // Reactualise l'affichage de la liste de Budgets quand on revient à la mainActivity
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
         updateMainListBudget();
         pieChartSetup();
     }
 
-    private void pieChartSetup (){
+    private void pieChartSetup() {
         pieChart.setRotationEnabled(true);
         pieChart.setUsePercentValues(false);
         pieChart.getDescription().setEnabled(false);
@@ -306,24 +288,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         float remaining = 0;
         float usedBudget;
         int nbDepenses;
+        DecimalFormat df = new DecimalFormat("0.00");
 
         cursor = DB_Expenses.getAllData();
         nbDepenses = cursor.getCount();
 
         cursor = DB_Budget.getAllData();
         cursor.moveToFirst();
-        if(cursor.getCount()>0){
-            do{
-                budget += Float.parseFloat (cursor.getString(2));
-                remaining += Float.parseFloat (cursor.getString(3));
-            }while(cursor.moveToNext());
+        if (cursor.getCount() > 0) {
+            do {
+                budget += Float.parseFloat(cursor.getString(2));
+                remaining += Float.parseFloat(cursor.getString(3));
+            } while (cursor.moveToNext());
         }
 
-        usedBudget = budget-remaining + 0.0f;
-        String currency = prefs.getString("currency","$");
+        usedBudget = budget - remaining + 0.0f;
+        String currency = prefs.getString("currency", "$");
 
-        SpannableString s = new SpannableString(getString(R.string.epargne)+"\n"+remaining+currency);
-        s.setSpan(new RelativeSizeSpan(1.5f),getString(R.string.epargne).length(), s.length(), 0);
+        SpannableString s = new SpannableString(getString(R.string.epargne) + "\n" + df.format(remaining) + currency);
+        s.setSpan(new RelativeSizeSpan(1.5f), getString(R.string.epargne).length(), s.length(), 0);
         //s.setSpan(new ForegroundColorSpan(Color.rgb(16,176,115)),s.length()-1-Float.toString(remaining).length(), s.length(), 0);
         pieChart.setCenterText(s);
 
@@ -331,7 +314,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ArrayList<PieEntry> yValues = new ArrayList<>();
         yValues.add(new PieEntry(usedBudget, ""));
         yValues.add(new PieEntry(remaining, ""));
-        PieDataSet dataSet = new PieDataSet(yValues,"Budget");
+        PieDataSet dataSet = new PieDataSet(yValues, "Budget");
         dataSet.setSliceSpace(3f);
         dataSet.setSelectionShift(5f);
         dataSet.setValueTextSize(0f);
@@ -346,32 +329,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         pieChart.setData(data);
 
         //Legend
-        String string = getString(R.string.totalbudget) +"\n"+Float.toString(budget)+currency
-                +"\n"+getString(R.string.used)
-                +"\n"+Float.toString(usedBudget)+currency
-                +"\n"+getString(R.string.nbBudget)
-                +"\n"+cursor.getCount()
-                +"\n"+getString(R.string.nbExpenses)
-                +"\n"+nbDepenses
-                ;
+        String string = getString(R.string.totalbudget) + "\n" + df.format(budget) + currency
+                + "\n" + getString(R.string.used)
+                + "\n" + df.format(usedBudget) + currency
+                + "\n" + getString(R.string.nbBudget)
+                + "\n" + cursor.getCount()
+                + "\n" + getString(R.string.nbExpenses)
+                + "\n" + nbDepenses;
         int counter;
         int counter2;
         SpannableString string2 = new SpannableString(string);
         counter = getString(R.string.totalbudget).length();
-        string2.setSpan(new StyleSpan(Typeface.BOLD), 0,counter , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        counter2 = counter + (Float.toString(budget)+currency).length() + 1;
-        string2.setSpan(new RelativeSizeSpan(1.4f),counter,counter2, 0);
-        counter = counter2 + getString(R.string.used).length()+2;
-        string2.setSpan(new StyleSpan(Typeface.BOLD), counter2, counter , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        counter2 = counter + (Float.toString(usedBudget)+currency).length();
-        string2.setSpan(new RelativeSizeSpan(1.4f),counter,counter2, 0);
-        counter = counter2 + getString(R.string.nbBudget).length()+1;
-        string2.setSpan(new StyleSpan(Typeface.BOLD), counter2,counter , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        string2.setSpan(new StyleSpan(Typeface.BOLD), 0, counter, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        counter2 = counter + (df.format(budget) + currency).length() + 1;
+        string2.setSpan(new RelativeSizeSpan(1.4f), counter, counter2, 0);
+        counter = counter2 + getString(R.string.used).length() + 2;
+        string2.setSpan(new StyleSpan(Typeface.BOLD), counter2, counter, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        counter2 = counter + (df.format(usedBudget) + currency).length();
+        string2.setSpan(new RelativeSizeSpan(1.4f), counter, counter2, 0);
+        counter = counter2 + getString(R.string.nbBudget).length() + 1;
+        string2.setSpan(new StyleSpan(Typeface.BOLD), counter2, counter, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         counter2 = counter + Float.toString(cursor.getCount()).length();
-        string2.setSpan(new RelativeSizeSpan(1.4f),counter,counter2, 0);
-        counter = string.length()-Float.toString(nbDepenses).length()+1;
-        string2.setSpan(new StyleSpan(Typeface.BOLD), counter2,counter , Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        string2.setSpan(new RelativeSizeSpan(1.4f),string.length()-Float.toString(nbDepenses).length()+1,string.length(), 0);
+        string2.setSpan(new RelativeSizeSpan(1.4f), counter, counter2, 0);
+        counter = string.length() - Float.toString(nbDepenses).length() + 1;
+        string2.setSpan(new StyleSpan(Typeface.BOLD), counter2, counter, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        string2.setSpan(new RelativeSizeSpan(1.4f), string.length() - Float.toString(nbDepenses).length() + 1, string.length(), 0);
 
         legend.setText(string2);
     }
@@ -383,7 +365,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         switch (requestCode) {
             case REQUEST_IMAGE_CAPTURE:
-                if(resultCode == RESULT_OK) {
+                if (resultCode == RESULT_OK) {
                     String photoBase64 = data.getStringExtra("photoBase64");
                     Intent addExpenseWithData = new Intent(MainActivity.this, NewExpensesActivity.class);
                     addExpenseWithData.putExtra("requestDataToAPI", true);
@@ -400,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     System.out.println("dataToAdd3 = " + dataToAdd[3]);
                     String expenseMonth = dataToAdd[3].split("-")[1];
 
-                    if(isSameMonthAsCurrent(expenseMonth)){
+                    if (isSameMonthAsCurrent(expenseMonth)) {
                         DB_Budget.substractRemainingAmount(budgetID, Float.valueOf(dataToAdd[2]));
                     }
                     DB_Expenses.insertDataName(dataToAdd[0], budgetID, Float.valueOf(dataToAdd[2]), dataToAdd[3]);
@@ -410,7 +392,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
             case REQUEST_MODIFICATION_EXPENSE_DATA:
-                if (resultCode == RESULT_OK && data !=null){
+                if (resultCode == RESULT_OK && data != null) {
                     String[] dataToModify = data.getStringArrayExtra("dataToSave");
                     String idExpense = data.getStringExtra("idExpenseToModify");
                     Float oldExpenseValue = data.getFloatExtra("oldExpenseValue", 0);
@@ -418,11 +400,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     String expenseMonth = dataToModify[3].split("-")[1];
                     Integer categoryID = Integer.valueOf(dataToModify[1]);
 
-                    if(isSameMonthAsCurrent(expenseMonth)){
+                    if (isSameMonthAsCurrent(expenseMonth)) {
                         DB_Budget.increaseRemainingAmount(categoryID, oldExpenseValue);
                         DB_Budget.substractRemainingAmount(categoryID, Float.valueOf(dataToModify[2]));
                     }
-                    DB_Expenses.updateData(idExpense,dataToModify[0],categoryID,Float.valueOf(dataToModify[2]), dataToModify[3]);
+                    DB_Expenses.updateData(idExpense, dataToModify[0], categoryID, Float.valueOf(dataToModify[2]), dataToModify[3]);
                     Toast.makeText(getApplicationContext(), R.string.successful_expense_modification, Toast.LENGTH_LONG).show();
 
                 }
@@ -439,7 +421,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
 
             case REQUEST_MODIFICATION_BUDGET_DATA:
-                if (resultCode == RESULT_OK && data !=null){
+                if (resultCode == RESULT_OK && data != null) {
                     String[] dataToModify = data.getStringArrayExtra("dataToModify");
                     String idExpense = data.getStringExtra("idBudgetToModify");
                     Float oldBudgetValue = Float.valueOf(data.getStringExtra("oldBudgetValue"));
@@ -449,7 +431,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     Float newRemaining = newBudgetValue - (oldBudgetValue - remaining);
 
                     // Calcul du nouveau remaining (selon la différence entre l'ancienne valeur et la nouvelle)
-                    DB_Budget.updateData(idExpense,dataToModify[0],Float.valueOf(dataToModify[1]), newRemaining);
+                    DB_Budget.updateData(idExpense, dataToModify[0], Float.valueOf(dataToModify[1]), newRemaining);
                     Toast.makeText(getApplicationContext(), R.string.successful_category_modified, Toast.LENGTH_LONG).show();
                 }
                 break;
@@ -467,10 +449,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         DateFormat monthyear = new SimpleDateFormat("MM-yyyy");
 
         String today = df.format(cal.getTime());
-        String resetDay = "01/"+ monthyear.format(nextMonth.getTime());
+        String resetDay = "01-" + monthyear.format(nextMonth.getTime());
 
         // Si le jour de reset prochain n'est pas défini, l'ajouter dans les préférences
-        if(!prefs.contains("nextResetDate")){
+        if (!prefs.contains("nextResetDate")) {
             edit.putString("nextResetDate", resetDay);
             edit.apply();
         }
@@ -479,122 +461,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Date dToday = df.parse(today);
         Date dNextResetDay = df.parse(nextResetDate);
 
-        if (dToday.compareTo(dNextResetDay) > 0){ // Si le jour courant dépasse la date de reset, alors faire le reset et calculer la prochaine date de reset
+        if (dToday.compareTo(dNextResetDay) > 0) { // Si le jour courant dépasse la date de reset, alors faire le reset et calculer la prochaine date de reset
             DB_Budget.resetRemaining();
             DB_Budget.updateRemaining(DB_Expenses.getAllData());
             updateMainListBudget();
             Snackbar.make(findViewById(R.id.myCoordinatorLayout), R.string.monthly_reset_process, Snackbar.LENGTH_LONG).show();
 
             // Défini la prochaine date de reset
-            edit.putString("nextResetDate", "01/"+ monthyear.format(nextMonth.getTime()));
+            edit.putString("nextResetDate", "01-" + monthyear.format(nextMonth.getTime()));
             edit.apply();
         }
     }
 
-    /*****************
-     *  PERMISSIONS  *
-     *****************/
-    // Gère la réponse d'un utilisateur à une requête de permission
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_ALL:
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 && isAllGranted(grantResults)) {
-                    // Permission accordée : accès à l'appareil photo
-                    startActivity(new Intent(MainActivity.this, CameraActivity.class));
-                } else {
-                    // Permission refusée: impossible de prendre de photo
-                    Toast.makeText(getApplicationContext(), "Permission refusée: impossible d'accéder à l'appareil photo.", Toast.LENGTH_SHORT).show();
-                }
-                return;
-        }
-    }
-
-    // Vérification si toutes les permissions demandées ont été acceptés
-    public boolean isAllGranted(int[] grantResults) {
-        for (int i = 0; i < grantResults.length; i++) {
-            if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    //Vérification si les permissions actuelles sont suffisantes
-    public static boolean hasPermissions(Context context, String... permissions) {
-        if (context != null && permissions != null) {
-            for (String permission : permissions) {
-                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    // Affiche la date courante dans le Toolbar
-    public static String getCurrentDate(Context ctx){
-        DateFormat dateFormat = new SimpleDateFormat("d-MM-yyyy");
-        Date date = new Date();
-        String[] dateStr = dateFormat.format(date).split("-");
-
-        return dateStr[0] + getMonthFromNb(dateStr[1], ctx) + dateStr[2];
-    }
-
-    public static String getMonthFromNb(String nb, Context ctx){
-        switch(nb) {
-            case "01":
-                return " " + ctx.getString(R.string.janvier) + " ";
-            case "02":
-                return " " + ctx.getString(R.string.fevrier) + " ";
-            case "03":
-                return " " + ctx.getString(R.string.mars) + " ";
-            case "04":
-                return " " + ctx.getString(R.string.avril) + " ";
-            case "05":
-                return " " + ctx.getString(R.string.mai) + " ";
-            case "06":
-                return " " + ctx.getString(R.string.juin) + " ";
-            case "07":
-                return " " + ctx.getString(R.string.juillet) + " ";
-            case "08":
-                return " " + ctx.getString(R.string.aout) + " ";
-            case "09":
-                return " " + ctx.getString(R.string.septembre) + " ";
-            case "10":
-                return " " + ctx.getString(R.string.octobre) + " ";
-            case "11":
-                return " " + ctx.getString(R.string.novembre) + " ";
-            case "12":
-                return " " + ctx.getString(R.string.decembre) + " ";
-            default:
-                return " Cinglinglin ";
-        }
-    }
-
-    public static String getDayOfWeek(int nb, Context ctx){
-        switch (nb) {
-            case 1:
-                return " " + ctx.getString(R.string.dimanche) + " ";
-            case 2:
-                return " " + ctx.getString(R.string.lundi) + " ";
-            case 3:
-                return " " + ctx.getString(R.string.mardi) + " ";
-            case 4:
-                return " " + ctx.getString(R.string.mercredi) + " ";
-            case 5:
-                return " " + ctx.getString(R.string.jeudi) + " ";
-            case 6:
-                return " " + ctx.getString(R.string.vendredi) + " ";
-            case 7:
-                return " " + ctx.getString(R.string.samedi) + " ";
-            default:
-                return "Error";
-        }
-    }
-
-    @Override
+    // Gère la recherche
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
@@ -617,7 +497,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         mSearchView.setQueryHint(getResources().getString(R.string.research));
-        customAdapter = new CustomAdapter(this,cursor);
+        customAdapter = new CustomAdapter(this, cursor);
 
         mListView.setAdapter((ListAdapter) customAdapter);
         mListView.setEmptyView(mEmptyView);
@@ -631,12 +511,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(final String query) {
-                cursor = DB_Expenses.getExpenseListByKeyword(query,mSort);
+                cursor = DB_Expenses.getExpenseListByKeyword(query, mSort);
 
-                if (cursor==null){
-                    Toast.makeText(MainActivity.this,"Pas de dépense trouvée!",Toast.LENGTH_LONG).show();
-                }else{
-                    Toast.makeText(MainActivity.this, cursor.getCount() + " dépenses trouvée.s!",Toast.LENGTH_LONG).show();
+                if (cursor == null) {
+                    Toast.makeText(MainActivity.this, "Pas de dépense trouvée!", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, cursor.getCount() + " dépenses trouvée.s!", Toast.LENGTH_LONG).show();
                 }
                 customAdapter.changeCursor(cursor);
 
@@ -671,10 +551,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 setResearchVisibility(true);
                 setMainViewVisibility(false);
 
-                cursor = DB_Expenses.getExpenseListByKeyword(newText,mSort);
+                cursor = DB_Expenses.getExpenseListByKeyword(newText, mSort);
 
                 customAdapter.changeCursor(cursor);
-                if (cursor !=null){
+                if (cursor != null) {
                     customAdapter.changeCursor(cursor);
                 }
 
@@ -704,10 +584,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 return false;
             }
         });
+
+        mSearchView.setOnSearchClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                updateResearchList("");
+                // Affiche l'interface de recherche
+                setResearchVisibility(true);
+                // Cache l'écran principal
+                setMainViewVisibility(false);
+            }
+        });
         // Quand on quitte la recherche on fait disparaitre le ListView
         mSearchView.setOnCloseListener(new SearchView.OnCloseListener() {
             @Override
             public boolean onClose() {
+                // Cache l'interface de recherche
                 setResearchVisibility(false);
                 // Réactivation ecran principal
                 setMainViewVisibility(true);
@@ -724,10 +616,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 final AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
                 builder.setCancelable(true);
+                builder.setTitle(((Cursor)parent.getAdapter().getItem(position)).getString(1));
+                builder.setIcon(R.drawable.ic_edit_black_24dp);
                 builder.setItems(list, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch(which){
+                        switch (which) {
                             case 0: // Modification
                                 modifyExpenseOptions(strId);
                                 // Une fois qu'on a modifié la dépense, on ferme la recherche précédente pour l'actualiser
@@ -750,56 +644,54 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 break;
                         }
                     }
-                }) ;
+                });
                 builder.show();
             }
         });
         return true;
     }
 
-    public void modifyExpenseOptions(String strId){
+    public void modifyExpenseOptions(String strId) {
         // On appelle l'activité pour modifier la dépense (qui est en soit l'activité de création de dépense, auxquelle on fourni un extra particulier)
         Intent modifyExpense = new Intent(MainActivity.this, NewExpensesActivity.class);
         modifyExpense.putExtra("requestModifyData", true);
-        modifyExpense.putExtra("idExpenseToModify",strId);
-        startActivityForResult(modifyExpense,REQUEST_MODIFICATION_EXPENSE_DATA);
+        modifyExpense.putExtra("idExpenseToModify", strId);
+        startActivityForResult(modifyExpense, REQUEST_MODIFICATION_EXPENSE_DATA);
     }
 
-    public void deleteExpenseOptions(String strId){
+    public void deleteExpenseOptions(String strId) {
         Cursor expenseData = DB_Expenses.getExpense(strId); // Toutes les informations de la dépense sélectionné
 
-        if(expenseData != null){
+        if (expenseData != null) {
             String expenseDate = expenseData.getString(4).split("-")[1];
-            if(isSameMonthAsCurrent(expenseDate)){
+            if (isSameMonthAsCurrent(expenseDate)) {
                 // Mets à jour le reste du budget associé à la dépense si cette dernière et enregistré pour le mois courant
                 DB_Budget.increaseRemainingAmount(expenseData.getInt(2), expenseData.getFloat(3));
             }
             DB_Expenses.deleteData(strId);
-            Toast.makeText(getApplicationContext(),R.string.successful_expense_deleted, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), R.string.successful_expense_deleted, Toast.LENGTH_SHORT).show();
         }
     }
 
-    public static boolean isSameMonthAsCurrent(String month){
-        Calendar cal = Calendar.getInstance();
-        DateFormat patternYear = new SimpleDateFormat("M");
-        String currentMonth = patternYear.format(cal.getTime());
-        if(currentMonth.equals(NewExpensesActivity.fixDate(month))){
-            return true;
-        }
-        return false;
-    }
-
-    public void updateMainListBudget(){
+    public void updateMainListBudget() {
         cursorBudget = DB_Budget.getAllData();
         customAdapterBudget.changeCursor(cursorBudget);
+        // Vérifier si vide : si oui affichage message
+        if(cursorBudget.getCount() == 0){
+            popupNoBudget.setVisibility(View.VISIBLE);
+
+        }
+        else {
+            popupNoBudget.setVisibility(View.GONE);
+        }
     }
 
-    public void updateResearchList(String search){
+    public void updateResearchList(String search) {
         cursor = DB_Expenses.getExpenseListByKeyword(search, mSort);
         customAdapter.changeCursor(cursor);
     }
 
-    public void setResearchVisibility(boolean shown){
+    public void setResearchVisibility(boolean shown) {
         int visibility = shown ? View.VISIBLE : View.GONE;
 
         mListView.setVisibility(visibility);
@@ -807,14 +699,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mButtonAmount.setVisibility(visibility);
         mButtonName.setVisibility(visibility);
 
-        if(shown){
-            this.getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.colorIcons));
+        if (shown) {
+            this.getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.colorMainBackground));
             mListView.setDivider(null);
             mListView.setDividerHeight(2);
         }
     }
 
-    public void setMainViewVisibility(boolean shown){
+    public void setMainViewVisibility(boolean shown) {
         int visibility = shown ? View.VISIBLE : View.GONE;
 
         mBottomBar.setVisibility(visibility);
@@ -822,22 +714,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         pieChart.setVisibility(visibility);
         legend.setVisibility(visibility);
 
-        if(shown){
+        if(cursorBudget.getCount() == 0){
+            popupNoBudget.setVisibility(visibility);
+        }
+
+        if (shown) {
             this.getWindow().getDecorView().setBackgroundColor(getResources().getColor(R.color.dark_grey));
         }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
 
             case R.id.currency_settings:
-                final String[] listCurrencies = { "$ - " + getString(R.string.CAD),
+                final String[] listCurrencies = {"$ - " + getString(R.string.CAD),
                         "€ - " + getString(R.string.EUR),
                         "$ - " + getString(R.string.USD),
                         "$ - " + getString(R.string.AUD),
                         "£ - " + getString(R.string.GBP),
-                        "Fr. - "+getString(R.string.CHF),
+                        "Fr. - " + getString(R.string.CHF),
                         "¥ - " + getString(R.string.JPY),
                         "R - " + getString(R.string.ZAR),
                 };
@@ -859,12 +755,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         editor.putInt("currencyID", which); // Modification du paramètre "devise"
                         editor.apply();
                         pieChartSetup();
-                        Toast.makeText(getApplicationContext(), "Devise choisie : "+ chosenCurrency, Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), "Devise choisie : " + chosenCurrency, Toast.LENGTH_LONG).show();
                         dialog.dismiss();
                     }
                 });
 
-                builder.setNegativeButton(R.string.cancel,null);
+                builder.setNegativeButton(R.string.cancel, null);
                 builder.show();
                 break;
         }
@@ -887,7 +783,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        switch(id){
+        switch (id) {
             case R.id.nav_erase_data:
                 final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setCancelable(true);
@@ -914,6 +810,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.nav_donation:
                 Snackbar.make(findViewById(R.id.myCoordinatorLayout), "Pas implémenté, nous ne sommes pas des escrocs", Snackbar.LENGTH_LONG).show();
                 break;
+
+            case R.id.nav_credit:
+                final AlertDialog.Builder builderCredit = new AlertDialog.Builder(this);
+                builderCredit.setCancelable(true);
+                builderCredit.setTitle(R.string.credit);
+                builderCredit.setMessage(R.string.icon_credit);
+                builderCredit.setPositiveButton(R.string.OK, null);
+                builderCredit.show();
+                break;
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -922,10 +827,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     // Gère la suppression de budget
-    public void requestBudgetDelete(final String budgetID){
+    public void requestBudgetDelete(final String budgetID) {
         Cursor expensesOfBudget = DB_Expenses.getExpensesAssociateToBudget(budgetID); // Toutes les informations du budget sélectionné
-        if(expensesOfBudget != null){
-            if(expensesOfBudget.getCount() > 0){
+        if (expensesOfBudget != null) {
+            if (expensesOfBudget.getCount() > 0) {
                 // Afficher un message avisant l'utilisateur de la suppression des dépenses associées
                 final AlertDialog.Builder message = new AlertDialog.Builder(MainActivity.this);
                 message.setCancelable(true);
@@ -945,8 +850,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
                 message.show();
             }
-        }
-        else{
+        } else {
             // Afficher un message avisant l'utilisateur de la suppression des dépenses associées
             final AlertDialog.Builder message = new AlertDialog.Builder(MainActivity.this);
             message.setCancelable(true);
@@ -967,11 +871,134 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    public void showMessage(String title, String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setCancelable(true);
-        builder.setTitle(title);
-        builder.setMessage(message);
-        builder.show();
+    // Affiche la date courante dans le Toolbar
+    public static String getCurrentDate(Context ctx) {
+        DateFormat dateFormat = new SimpleDateFormat("d-MM-yyyy");
+        Date date = new Date();
+        String[] dateStr = dateFormat.format(date).split("-");
+
+        return dateStr[0] + getMonthFromNb(dateStr[1], ctx) + dateStr[2];
     }
+
+    public static String getMonthFromNb(String nb, Context ctx) {
+        switch (nb) {
+            case "01":
+                return " " + ctx.getString(R.string.janvier) + " ";
+            case "02":
+                return " " + ctx.getString(R.string.fevrier) + " ";
+            case "03":
+                return " " + ctx.getString(R.string.mars) + " ";
+            case "04":
+                return " " + ctx.getString(R.string.avril) + " ";
+            case "05":
+                return " " + ctx.getString(R.string.mai) + " ";
+            case "06":
+                return " " + ctx.getString(R.string.juin) + " ";
+            case "07":
+                return " " + ctx.getString(R.string.juillet) + " ";
+            case "08":
+                return " " + ctx.getString(R.string.aout) + " ";
+            case "09":
+                return " " + ctx.getString(R.string.septembre) + " ";
+            case "10":
+                return " " + ctx.getString(R.string.octobre) + " ";
+            case "11":
+                return " " + ctx.getString(R.string.novembre) + " ";
+            case "12":
+                return " " + ctx.getString(R.string.decembre) + " ";
+            default:
+                return " Cinglinglin ";
+        }
+    }
+
+    public static String getDayOfWeek(int nb, Context ctx) {
+        switch (nb) {
+            case 1:
+                return " " + ctx.getString(R.string.dimanche) + " ";
+            case 2:
+                return " " + ctx.getString(R.string.lundi) + " ";
+            case 3:
+                return " " + ctx.getString(R.string.mardi) + " ";
+            case 4:
+                return " " + ctx.getString(R.string.mercredi) + " ";
+            case 5:
+                return " " + ctx.getString(R.string.jeudi) + " ";
+            case 6:
+                return " " + ctx.getString(R.string.vendredi) + " ";
+            case 7:
+                return " " + ctx.getString(R.string.samedi) + " ";
+            default:
+                return "Error";
+        }
+    }
+
+    public static boolean isSameMonthAsCurrent(String month) {
+        Calendar cal = Calendar.getInstance();
+        DateFormat patternYear = new SimpleDateFormat("M");
+        String currentMonth = patternYear.format(cal.getTime());
+        if (currentMonth.equals(NewExpensesActivity.fixDate(month))) {
+            return true;
+        }
+        return false;
+    }
+
+    /*****************
+     *  PERMISSIONS  *
+     *****************/
+    // Gère la réponse d'un utilisateur à une requête de permission
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_ALL:
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && isAllGranted(grantResults)) {
+                    // Permission accordée : accès à l'appareil photo
+                    startActivity(new Intent(MainActivity.this, CameraActivity.class));
+                } else {
+                    // Permission refusée: impossible de prendre de photo
+                    Toast.makeText(getApplicationContext(), "Permission refusée: impossible d'accéder à l'appareil photo.", Toast.LENGTH_SHORT).show();
+                }
+                return;
+        }
+    }
+
+    // Vérification si toutes les permissions demandées ont été acceptés
+    public boolean isAllGranted(int[] grantResults) {
+        for (int i = 0; i < grantResults.length; i++) {
+            if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    //Vérification si les permissions actuelles sont suffisantes
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+}
+
+class EnumSort {
+    typeSort sort;
+
+    public EnumSort(typeSort sort) {
+        this.sort = sort;
+    }
+
+    public void changeSort(typeSort newSort) {
+        this.sort = newSort;
+    }
+
+    public typeSort getSort() {
+        return sort;
+    }
+
 }

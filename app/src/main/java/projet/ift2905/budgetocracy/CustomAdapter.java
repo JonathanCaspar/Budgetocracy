@@ -11,7 +11,7 @@ import android.widget.CursorAdapter;
 import android.widget.TextView;
 
 
-public class CustomAdapter extends CursorAdapter{
+public class CustomAdapter extends CursorAdapter {
     TextView mExpense;
     TextView mCategorie;
     TextView mAmount;
@@ -20,19 +20,19 @@ public class CustomAdapter extends CursorAdapter{
     SharedPreferences prefs;
     DBHelper_Budget db_budget; //accès aux méthodes de la DB
 
-    public CustomAdapter (Context context, Cursor c){
-        super(context,c);
+    public CustomAdapter(Context context, Cursor c) {
+        super(context, c);
         db_budget = new DBHelper_Budget(context);
         prefs = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
     @Override
-    public View newView(Context context, Cursor cursor, ViewGroup parent){
-        return LayoutInflater.from(context).inflate(R.layout.item_research,parent,false);
+    public View newView(Context context, Cursor cursor, ViewGroup parent) {
+        return LayoutInflater.from(context).inflate(R.layout.item_research, parent, false);
     }
 
     @Override
-    public void bindView(View view, Context context, Cursor cursor){
+    public void bindView(View view, Context context, Cursor cursor) {
         mExpense = (TextView) view.findViewById(R.id.txtName);
         mCategorie = (TextView) view.findViewById(R.id.txtCategorie);
         mAmount = (TextView) view.findViewById(R.id.txtAmount);

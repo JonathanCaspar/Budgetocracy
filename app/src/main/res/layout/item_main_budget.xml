@@ -43,11 +43,14 @@
 
                 <TextView
                     android:id="@+id/budgetValue"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:elevation="10dp"
-                    android:text="TextView"
+                    android:layout_width="match_parent"
+                    android:layout_height="24dp"
+                    android:layout_alignParentStart="true"
 
+                    android:layout_alignParentTop="true"
+                    android:elevation="10dp"
+                    android:gravity="center_vertical"
+                    android:text="TextView"
                     android:textAlignment="center"
                     android:textColor="@color/colorMainBackground" />
 
