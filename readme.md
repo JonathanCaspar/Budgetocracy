@@ -34,5 +34,3 @@
 <img align="right" src="https://github.com/p1129743/Budgetocracy/blob/master/readme-img/Budgetocracy%20-%20Pr%C3%A9sentation_page-0034.jpg" width="50%">
 <img align="right" src="https://github.com/p1129743/Budgetocracy/blob/master/readme-img/Budgetocracy%20-%20Pr%C3%A9sentation_page-0035.jpg" width="50%">
 <img align="right" src="https://github.com/p1129743/Budgetocracy/blob/master/readme-img/Budgetocracy%20-%20Pr%C3%A9sentation_page-0036.jpg" width="50%">
-
-
