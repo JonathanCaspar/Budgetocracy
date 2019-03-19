@@ -1,4 +1,6 @@
-<img align="right" src="https://github.com/p1129743/Budgetocracy/blob/master/readme-img/Budgetocracy%20-%20Pr%C3%A9sentation_page-0001.jpg" width="50%">
+<p align="center">
+  <img src="https://github.com/p1129743/Budgetocracy/blob/master/readme-img/Budgetocracy%20-%20Pr%C3%A9sentation_page-0001.jpg" width="50%">
+</p>
 <img align="right" src="https://github.com/p1129743/Budgetocracy/blob/master/readme-img/Budgetocracy%20-%20Pr%C3%A9sentation_page-0002.jpg" width="50%">
 <img align="right" src="https://github.com/p1129743/Budgetocracy/blob/master/readme-img/Budgetocracy%20-%20Pr%C3%A9sentation_page-0003.jpg" width="50%">
 <img align="right" src="https://github.com/p1129743/Budgetocracy/blob/master/readme-img/Budgetocracy%20-%20Pr%C3%A9sentation_page-0004.jpg" width="50%">
